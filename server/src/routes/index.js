@@ -1,0 +1,24 @@
+import { Router } from "express";
+import { students } from "./students.js";
+import { tasks } from "./tasks.js";
+import { sessions } from "./sessions.js";
+import { profile } from "./profile.js";
+import { companion } from "./companion.js";
+import { env } from "../env.js";
+
+export const api = Router();
+
+api.get("/health", (_req, res) =>
+  res.json({
+    ok: true,
+    aiMode: env.aiMode,
+    model: env.aiMode === "live" ? env.model : null,
+    companion: env.companionProvider,
+  })
+);
+
+api.use("/students", students);
+api.use("/tasks", tasks);
+api.use("/sessions", sessions);
+api.use("/profile", profile);
+api.use("/companion", companion);

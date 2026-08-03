@@ -1,0 +1,236 @@
+// Ritmo data model.
+//
+// Design constraints that shaped this schema:
+//   1. A student's data belongs to the student. There is no Teacher table, no
+//      Parent table, and no relation that would let a third party read a
+//      student's session history. Sharing happens only through an explicit,
+//      student-generated ProfileExport.
+//   2. Raw interaction telemetry is never persisted. FrictionEvent stores a
+//      derived score and the signal name, never keystrokes or content.
+//   3. SQLite has no native JSON or enum support in Prisma, so structured
+//      values are stored as JSON strings and parsed at the service layer.
+//      Allowed values are documented above each field.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id        String   @id @default(cuid())
+  alias     String
+  ageBand   String   @default("middle") // elementary | middle | high
+  createdAt DateTime @default(now())
+
+  // Optional and self-described. Never inferred, never required, never shown
+  // to anyone but the student.
+  identifiesAs String? // free text, e.g. "ADHD, dyslexia"
+
+  defaultFormat  String  @default("skeleton") // skeleton | dialogue | map | comic | audio
+  readingTheme   String  @default("calm")     // calm | dark | contrast
+  readingTint    String  @default("none")     // none | amber | rose | mint | slate
+  letterSpacing  Float   @default(0)
+  lineHeight     Float   @default(1.7)
+  showStepCount  Boolean @default(false)      // off by default: totals cause panic
+  soundOn        Boolean @default(false)
+  // The owl guide. On by default, and switchable off in one press — the rest
+  // of the product forbids encouragement, so a student who does not want a
+  // companion must be able to have none rather than a quieter one.
+  companionOn    Boolean @default(true)
+  // The moving field behind the page. Sits behind opaque cards so it never
+  // runs under text, and reduced-motion users get a still frame regardless.
+  backdropOn     Boolean @default(true)
+  onboarded      Boolean @default(false)
+
+  profile       LearningProfile?
+  interventions Intervention[]
+  tasks         Task[]
+  sessions      Session[]
+  insights      Insight[]
+  exports       ProfileExport[]
+}
+
+model LearningProfile {
+  id        String  @id @default(cuid())
+  studentId String  @unique
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Plain-language sentences that become the model's system prompt.
+  // The student can read and edit every line of this.
+  directives String @default("[]") // JSON string[]
+
+  fastestFormat      String? // format with the highest observed reading rate
+  // Median rate across every recorded format. The browser needs this to know
+  // how long this particular student sitting on one paragraph is normal.
+  readingRateWpm     Float?
+  // Null until there is something to measure. The UI shows a dash rather than
+  // a number, because a default presented as a measurement is a lie.
+  bestBlockMinutes   Int?
+  medianFirstActionMs Int?
+  frictionThreshold  Float   @default(0.62) // tuned per student over time
+  sessionsAnalysed   Int     @default(0)
+  updatedAt          DateTime @updatedAt
+}
+
+// The menu that appears when friction is detected. The student writes this
+// list themselves during onboarding, before they ever need it.
+model Intervention {
+  id        String  @id @default(cuid())
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  key      String  // shrink | readAloud | speakInstead | pause | skip | reframe
+  label    String
+  enabled  Boolean @default(true)
+  order    Int     @default(0)
+  timesOffered Int @default(0)
+  timesTaken   Int @default(0)
+  timesHelped  Int @default(0) // student continued working for 3+ min after
+
+  @@unique([studentId, key])
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title     String
+  rawText   String
+  source    String   @default("paste") // paste | photo | file
+  subject   String?
+  createdAt DateTime @default(now())
+
+  decomposition Decomposition?
+  renderings    Rendering[]
+  sessions      Session[]
+}
+
+// The output of the decompiler: what the assignment is actually asking for,
+// stated in terms the student can verify against.
+model Decomposition {
+  id     String @id @default(cuid())
+  taskId String @unique
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  hiddenVerb      String // the real instruction behind "discuss", "explore"
+  plainAsk        String // one sentence, second person, no jargon
+  definitionOfDone String // how you know you can stop
+  deliverables    String // JSON string[]
+  trapWarnings    String @default("[]") // JSON string[] — unstated expectations
+  estimatedMinutes Int    @default(20)
+  model           String @default("mock")
+  createdAt       DateTime @default(now())
+
+  steps MicroStep[]
+}
+
+model MicroStep {
+  id              String        @id @default(cuid())
+  decompositionId String
+  decomposition   Decomposition @relation(fields: [decompositionId], references: [id], onDelete: Cascade)
+
+  order            Int
+  text             String
+  // Every step must be doable without making a single decision. The AI is
+  // instructed to rewrite any step that requires choosing.
+  decisionFree     Boolean @default(true)
+  estimatedSeconds Int     @default(120)
+  status           String  @default("waiting") // waiting | active | done | skipped
+  startedAt        DateTime?
+  completedAt      DateTime?
+}
+
+// Cached format transformations so switching format is instant the second time.
+model Rendering {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  format    String   // skeleton | dialogue | map | comic | audio
+  body      String   // markdown-ish text
+  wordCount Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([taskId, format])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  startedAt         DateTime  @default(now())
+  endedAt           DateTime?
+  firstActionMs     Int?      // time from open to first real action
+  activeSeconds     Int       @default(0)
+  stepsCompleted    Int       @default(0)
+  formatUsed        String?   // the format the session ended in
+  readingRateWpm    Float?    // the rate for that final format
+  outcome           String    @default("open") // open | finished | paused | abandoned
+
+  frictionEvents FrictionEvent[]
+  readingSamples ReadingSample[]
+}
+
+// One reading rate for one format, recorded when the student leaves that
+// format. A session can hold several: flipping between shapes is the normal
+// way this gets used, and the profile needs every pair to rank formats. The
+// Session's own formatUsed/readingRateWpm only hold the last one.
+model ReadingSample {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  format String // skeleton | dialogue | map | comic | audio
+  wpm    Float
+  at     DateTime @default(now())
+}
+
+// One row per detected friction moment — written only when the score crosses
+// this student's threshold, never on every sample. `offered` distinguishes a
+// crossing we acted on from one suppressed by the three-minute cooldown.
+// Signals are names, not payloads: nothing here can reconstruct what the
+// student typed or read.
+model FrictionEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  score        Float
+  topSignal    String   // dwell | deleteBurst | idle | tabAway | reread
+  offered      Boolean  @default(false)
+  chosenKey    String?
+  recoveredMs  Int?     // how long they kept working afterwards
+  at           DateTime @default(now())
+}
+
+// Generated observations, written in second person, evidence attached.
+// The student can dismiss any insight; dismissed insights are not regenerated.
+model Insight {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  kind       String  // format | pacing | initiation | intervention | environment
+  statement  String
+  evidence   String  // human-readable, e.g. "across 6 sessions"
+  confidence Float   @default(0.5)
+  dismissed  Boolean @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// A snapshot the student chooses to hand to a teacher. Nothing leaves the
+// student's account without a row here.
+model ProfileExport {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  audience  String   @default("teacher") // teacher | family | self
+  body      String
+  createdAt DateTime @default(now())
+}

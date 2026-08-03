@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Three themes, one tint layer.
+
+  Calm is the default: a cool paper that is not white, because white at full
+  brightness is the single most common complaint from students with visual
+  sensitivity. Contrast exists for students who need the opposite. The tint
+  layer is an overlay in the tradition of coloured reading rulers — evidence
+  for it is mixed, but our testers asked for it and it costs nothing to offer.
+*/
+
+:root,
+[data-theme="calm"] {
+  --c-ground: 233 236 231;
+  --c-surface: 253 253 252;
+  --c-raised: 244 246 242;
+  --c-ink: 22 33 30;
+  --c-muted: 90 104 99;
+  --c-faint: 138 149 144;
+  --c-line: 210 216 209;
+  --c-pine: 47 109 94;
+  --c-lit: 179 106 34;
+}
+
+[data-theme="dark"] {
+  --c-ground: 18 22 20;
+  --c-surface: 26 32 29;
+  --c-raised: 33 40 36;
+  --c-ink: 228 233 229;
+  --c-muted: 148 161 156;
+  --c-faint: 110 122 117;
+  --c-line: 44 53 49;
+  --c-pine: 111 181 162;
+  --c-lit: 217 154 78;
+}
+
+[data-theme="contrast"] {
+  --c-ground: 255 255 255;
+  --c-surface: 255 255 255;
+  --c-raised: 245 245 245;
+  --c-ink: 0 0 0;
+  --c-muted: 32 32 32;
+  --c-faint: 70 70 70;
+  --c-line: 0 0 0;
+  --c-pine: 0 71 56;
+  --c-lit: 138 74 0;
+}
+
+[data-tint="amber"] { --tint: 255 214 140; }
+[data-tint="rose"]  { --tint: 255 196 202; }
+[data-tint="mint"]  { --tint: 176 232 208; }
+[data-tint="slate"] { --tint: 176 198 224; }
+
+[data-tint]:not([data-tint="none"])::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgb(var(--tint) / 0.16);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  z-index: 60;
+}
+[data-theme="dark"][data-tint]:not([data-tint="none"])::after {
+  mix-blend-mode: soft-light;
+  background: rgb(var(--tint) / 0.1);
+}
+
+@layer base {
+  html {
+    background: rgb(var(--c-ground));
+  }
+  body {
+    @apply bg-ground text-ink font-sans antialiased;
+    line-height: var(--reading-leading, 1.7);
+    letter-spacing: var(--reading-tracking, 0);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Keyboard focus must be loud. Many of our users navigate without a mouse. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-pine));
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: rgb(var(--c-lit) / 0.25);
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-line rounded-card;
+  }
+  .eyebrow {
+    @apply font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-faint;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-card border px-4 py-2.5
+           text-sm transition-colors duration-200 ease-calm disabled:opacity-40
+           disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-pine text-surface border-pine hover:bg-ink hover:border-ink;
+  }
+  .btn-quiet {
+    @apply btn bg-transparent border-line text-ink hover:bg-raised;
+  }
+  .btn-bare {
+    @apply text-sm text-muted underline underline-offset-4 decoration-line
+           hover:text-ink hover:decoration-ink transition-colors;
+  }
+  .field {
+    @apply w-full bg-surface border border-line rounded-card px-3.5 py-2.5 text-ink
+           placeholder:text-faint focus:border-pine outline-none transition-colors;
+  }
+  .reading {
+    line-height: var(--reading-leading, 1.7);
+    letter-spacing: var(--reading-tracking, 0);
+  }
+
+  /*
+    A panel is a card whose label is cut into its own top border, so the label
+    belongs to the box instead of floating above it. It gives the interface
+    edges to hold on to without adding a single new colour.
+  */
+  .panel {
+    @apply relative bg-surface border border-line rounded-card;
+  }
+  .panel-legend {
+    @apply absolute -top-[0.5rem] left-4 px-2 bg-surface eyebrow;
+  }
+  .panel-meta {
+    @apply absolute -top-[0.5rem] right-4 px-2 bg-surface font-mono text-[0.6875rem] text-faint;
+  }
+}
+
+/* Nothing moves for anyone who asked for nothing to move. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@keyframes lantern {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--c-lit) / 0.18); }
+  50%      { box-shadow: 0 0 0 6px rgb(var(--c-lit) / 0); }
+}
+.lantern { animation: lantern 4.5s ease-in-out infinite; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise { animation: rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/*
+  Movement, and the rules it follows.
+
+  Everything below moves once, briefly, in response to something the student
+  did. Nothing loops in the corner of the eye, nothing moves while it is being
+  read, and nothing draws attention to a part of the screen that is not the
+  step. Motion here is feedback, not decoration — an action that produces no
+  visible change reads as a broken button, and a student who is not sure
+  whether the button worked presses it again instead of working.
+*/
+
+/* A new step taking the light. Fires when the active step changes. */
+@keyframes ignite {
+  from { opacity: 0; transform: translateY(10px) scale(0.994); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
+.ignite { animation: ignite 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* A finished step folding into the history above. */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.settle { animation: settle 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* A mark filling as one more step lands. */
+@keyframes mark-in {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: none; }
+}
+.mark-in { animation: mark-in 0.4s cubic-bezier(0.34, 1.3, 0.64, 1) both; }
+
+/* The three dots under "reading the assignment". Honest: it says work is
+   happening, never how much is left, because we do not know. */
+@keyframes think {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40%           { opacity: 1;    transform: translateY(-3px); }
+}
+.think-dot { animation: think 1.4s ease-in-out infinite; }
+
+/* A line of text swapping for the next one while the model works. */
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.step-in { animation: step-in 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* Children arrive in sequence rather than all at once, so the eye is given an
+   order to read them in. Capped: past six the wait stops feeling deliberate. */
+.stagger > * { animation: rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.stagger > *:nth-child(1) { animation-delay: 0.00s; }
+.stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.stagger > *:nth-child(3) { animation-delay: 0.10s; }
+.stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger > *:nth-child(5) { animation-delay: 0.20s; }
+.stagger > *:nth-child(n + 6) { animation-delay: 0.25s; }
+
+/* Pressing something should feel like pressing something. */
+.btn:not(:disabled):active { transform: translateY(1px); }
+
+/*
+  The companion blinks, and that is the only thing about it that moves without
+  being asked. Eight seconds apart, forty milliseconds long — under the
+  threshold where peripheral movement pulls the eye off the step.
+*/
+@keyframes owl-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.08); }
+}
+.owl-eyes {
+  animation: owl-blink 8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The dock lifting slightly under the pointer. */
+.owl-dock { transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.owl-dock:hover { transform: translateY(-3px); }
+
+@keyframes companion-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.companion-in {
+  animation: companion-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  transform-origin: bottom right;
+}
+
+/* A message arriving in the chat. */
+@keyframes message-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.message-in { animation: message-in 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* Format marks pick up the ink colour of whatever they sit inside. */
+.glyph { display: block; width: 1.125rem; height: 1.125rem; }
+.glyph path, .glyph rect, .glyph circle, .glyph line, .glyph polygon {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.glyph .solid { fill: currentColor; stroke: none; }

@@ -1,0 +1,21 @@
+{
+  "name": "ritmo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ritmo — an AI study companion that learns how a student works, then rebuilds any assignment into a shape their brain can enter.",
+  "type": "module",
+  "workspaces": ["server", "web"],
+  "scripts": {
+    "setup": "npm install && npm run db:setup --workspace server",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace server",
+    "dev:web": "npm run dev --workspace web",
+    "build": "npm run build --workspace web",
+    "db:studio": "npm run db:studio --workspace server",
+    "db:reset": "npm run db:reset --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": { "node": ">=20" }
+}
