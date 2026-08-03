@@ -4,11 +4,7 @@
   "outputDirectory": "web/dist",
   "installCommand": "npm install",
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ],
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 30
-    }
-  }
+    { "source": "/api/(.*)", "destination": "/api?__ritmo_path=/api/$1" },
+    { "source": "/((?!api).*)", "destination": "/index.html" }
+  ]
 }

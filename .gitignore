@@ -10,3 +10,5 @@ server/prisma/dev.db*
 # Derived from schema.prisma at build time by scripts/vercel-db.js
 server/prisma/pg.prisma
 .vercel
+
+.vercel
