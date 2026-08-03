@@ -46,6 +46,19 @@ npm run db:reset    # wipe and reseed
 
 ---
 
+## Running it hosted
+
+There is a deployed copy for people who want to click rather than clone. It
+runs the same code against Postgres instead of a local SQLite file, which is a
+weaker privacy position and the app says so out loud: `/api/health` reports
+whether an instance is hosted, and the privacy page prints the promise that
+actually applies rather than the flattering one.
+
+If the privacy guarantee is the part you care about, run it yourself. Two
+commands, no key, and the database is a file you own.
+
+---
+
 ## What is in here
 
 ```

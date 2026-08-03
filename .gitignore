@@ -6,3 +6,7 @@ dist/
 *.db-journal
 server/prisma/dev.db*
 .DS_Store
+
+# Derived from schema.prisma at build time by scripts/vercel-db.js
+server/prisma/pg.prisma
+.vercel

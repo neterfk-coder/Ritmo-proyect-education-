@@ -11,7 +11,7 @@ import { useStudent } from "../state/StudentContext";
  * plain terms rather than in a policy nobody reads.
  */
 export function Privacy() {
-  const { student, erase, signOut } = useStudent();
+  const { student, erase, signOut, hosted } = useStudent();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -48,9 +48,37 @@ export function Privacy() {
         <h2 className="eyebrow">What is stored</h2>
         <p className="reading text-[0.9375rem] text-muted">
           Your rules, your tasks, the steps you finished, and one row per friction moment holding a
-          score and a signal name. It sits in a SQLite file on the machine running this app. If you
-          are running Ritmo locally, that machine is yours.
+          score and a signal name.
         </p>
+        {/*
+          The two sentences below are different promises, and which one is true
+          depends on where this copy is running. The page asks the server and
+          says the one that applies, rather than printing the flattering one
+          and hoping.
+        */}
+        {hosted ? (
+          <div className="panel p-5 space-y-3">
+            <span className="panel-legend">You are on the hosted copy</span>
+            <p className="reading text-[0.9375rem] text-muted pt-1">
+              This one keeps your rows in a database on a server, not on your machine. Whoever
+              operates this site can reach that database. Everything above about cameras,
+              microphones and keystrokes still holds, and there is still no account for anyone but
+              you — but "it never leaves your device" is not a claim this copy can make.
+            </p>
+            <p className="reading text-[0.9375rem] text-muted">
+              If you want the version where the data is a file you own, run it yourself. It takes
+              two commands and needs no key:{" "}
+              <code className="font-mono text-xs bg-raised border border-line rounded px-1.5 py-0.5">
+                npm run setup && npm run dev
+              </code>
+            </p>
+          </div>
+        ) : (
+          <p className="reading text-[0.9375rem] text-muted">
+            It sits in a SQLite file on the machine running this app, and you are running it
+            locally, so that machine is yours.
+          </p>
+        )}
       </section>
 
       <section className="space-y-4">

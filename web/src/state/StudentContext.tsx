@@ -13,6 +13,8 @@ interface Ctx {
   student: Student | null;
   loading: boolean;
   aiMode: string;
+  /** True when this instance stores data on a server rather than on this machine. */
+  hosted: boolean;
   signIn: (id: string) => Promise<void>;
   signOut: () => void;
   setStudent: (s: Student) => void;
@@ -26,9 +28,16 @@ export function StudentProvider({ children }: { children: ReactNode }) {
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [aiMode, setAiMode] = useState("mock");
+  const [hosted, setHosted] = useState(false);
 
   useEffect(() => {
-    api.health().then((h) => setAiMode(h.aiMode)).catch(() => setAiMode("offline"));
+    api
+      .health()
+      .then((h) => {
+        setAiMode(h.aiMode);
+        setHosted(Boolean(h.hosted));
+      })
+      .catch(() => setAiMode("offline"));
   }, []);
 
   useEffect(() => {
@@ -89,6 +98,7 @@ export function StudentProvider({ children }: { children: ReactNode }) {
       student,
       loading,
       aiMode,
+      hosted,
       signIn,
       signOut,
       patch,
@@ -98,7 +108,7 @@ export function StudentProvider({ children }: { children: ReactNode }) {
         setStudent(s);
       },
     }),
-    [student, loading, aiMode, signIn, signOut, patch, erase]
+    [student, loading, aiMode, hosted, signIn, signOut, patch, erase]
   );
 
   return <StudentContext.Provider value={value}>{children}</StudentContext.Provider>;

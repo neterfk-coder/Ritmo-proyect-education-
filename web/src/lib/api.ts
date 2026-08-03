@@ -16,7 +16,14 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  health: () => call<{ ok: boolean; aiMode: string; model: string | null }>("/health"),
+  health: () =>
+    call<{
+      ok: boolean;
+      aiMode: string;
+      model: string | null;
+      companion?: string;
+      hosted?: boolean;
+    }>("/health"),
 
   createStudent: (payload: Record<string, unknown>) =>
     call<Student>("/students", { method: "POST", body: JSON.stringify(payload) }),

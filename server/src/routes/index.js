@@ -14,6 +14,10 @@ api.get("/health", (_req, res) =>
     aiMode: env.aiMode,
     model: env.aiMode === "live" ? env.model : null,
     companion: env.companionProvider,
+    // The privacy page describes the instance you are actually using, not the
+    // one we would prefer you were using. Hosted and local are not the same
+    // promise, and the page has to say which one it is making.
+    hosted: env.hosted,
   })
 );
 

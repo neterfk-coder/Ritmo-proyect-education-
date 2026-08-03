@@ -10,7 +10,7 @@ const NAV = [
 ];
 
 export function Shell() {
-  const { student, aiMode } = useStudent();
+  const { student, aiMode, hosted } = useStudent();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -75,8 +75,18 @@ export function Shell() {
         <div className="mx-auto max-w-page px-6 py-6 flex flex-wrap gap-x-6 gap-y-2 items-baseline">
           <span className="eyebrow">Ritmo</span>
           <p className="text-sm text-muted">
-            No camera. No microphone unless you press it. No teacher dashboard. Nothing leaves this
-            device unless you export it.
+            No camera. No microphone unless you press it. No teacher dashboard.{" "}
+            {hosted ? (
+              <>
+                This copy stores your work on a server —{" "}
+                <NavLink to="/privacy" className="underline underline-offset-4 decoration-line">
+                  what that means
+                </NavLink>
+                .
+              </>
+            ) : (
+              "Nothing leaves this device unless you export it."
+            )}
           </p>
         </div>
       </footer>
