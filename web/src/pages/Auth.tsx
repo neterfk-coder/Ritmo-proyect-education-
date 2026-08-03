@@ -51,6 +51,8 @@ export function Auth({ mode }: { mode: Mode }) {
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [guestBusy, setGuestBusy] = useState(false);
+  const [askingName, setAskingName] = useState(false);
+  const [guestName, setGuestName] = useState("");
   const [done, setDone] = useState<null | "sent" | "in" | "reset">(null);
 
   // Which way the panel should come in from.
@@ -116,16 +118,18 @@ export function Auth({ mode }: { mode: Mode }) {
    * Straight in. This is a real account with the setup questions answered for
    * you, not a demo sandbox — it just skips the part that stops people who
    * came here because starting things is the hard bit.
+   *
+   * One question is asked first, and it is optional: what to call you. Leaving
+   * it empty has to work as well as filling it in, or it is a form again.
    */
   const enterAsGuest = async () => {
     setFormError(null);
     setGuestBusy(true);
     try {
-      setStudent(await createGuest());
-      navigate("/work");
+      setStudent(await createGuest(guestName));
+      navigate("/work", { replace: true });
     } catch (err) {
       setFormError(explainCreateFailure(err));
-    } finally {
       setGuestBusy(false);
     }
   };
@@ -143,8 +147,20 @@ export function Auth({ mode }: { mode: Mode }) {
           </div>
         </header>
 
-        <div key={mode + (done ?? "")} className={direction}>
-          {done ? (
+        <div key={mode + (done ?? "") + (askingName ? "-name" : "")} className={askingName ? "auth-forward" : direction}>
+          {askingName ? (
+            <GuestName
+              value={guestName}
+              onChange={setGuestName}
+              busy={guestBusy}
+              error={formError}
+              onEnter={enterAsGuest}
+              onBack={() => {
+                setAskingName(false);
+                setFormError(null);
+              }}
+            />
+          ) : done ? (
             <Finished
               state={done}
               email={email}
@@ -251,11 +267,14 @@ export function Auth({ mode }: { mode: Mode }) {
               <div className="border-t border-line pt-5 space-y-3">
                 <button
                   type="button"
-                  onClick={enterAsGuest}
-                  disabled={guestBusy || busy}
-                  className={`btn-quiet w-full relative overflow-hidden ${guestBusy ? "sweep" : ""}`}
+                  onClick={() => {
+                    setFormError(null);
+                    setAskingName(true);
+                  }}
+                  disabled={busy}
+                  className="btn-quiet w-full"
                 >
-                  {guestBusy ? "Opening…" : "Go straight in, no account"}
+                  Go straight in, no account
                 </button>
                 <p className="text-xs text-faint reading">
                   Everything works: tasks, formats, the profile, the page for your teacher. It
@@ -281,6 +300,83 @@ export function Auth({ mode }: { mode: Mode }) {
 }
 
 /* ---------- pieces ---------- */
+
+/**
+ * The only thing asked before letting a guest in, and it is optional.
+ *
+ * Both buttons are real: "Go in" works with the box empty, and skipping is not
+ * hidden behind small grey text. A single optional question is the most that
+ * can be asked of somebody who pressed a button that promised no account.
+ */
+function GuestName({
+  value, onChange, busy, error, onEnter, onBack,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  busy: boolean;
+  error: string | null;
+  onEnter: () => void;
+  onBack: () => void;
+}) {
+  const id = useId();
+  const field = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { field.current?.focus(); }, []);
+
+  return (
+    <form
+      className="panel p-6 sm:p-7 space-y-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!busy) onEnter();
+      }}
+    >
+      <span className="panel-legend">Almost in</span>
+
+      <div className="space-y-2 pt-1">
+        <h1 className="font-display text-[1.6rem] leading-[1.25] tracking-tight">
+          What should this call you?
+        </h1>
+        <p className="text-sm text-muted reading">
+          Optional. It is only ever shown to you, and you can change it later.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor={id} className="sr-only">
+          What should this call you
+        </label>
+        <input
+          id={id}
+          ref={field}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          maxLength={40}
+          autoComplete="nickname"
+          placeholder="Leave it empty if you would rather not"
+          className="field"
+        />
+      </div>
+
+      {error && (
+        <p className="nudge text-sm text-muted reading border-l-2 border-line pl-3">{error}</p>
+      )}
+
+      <div className="space-y-3">
+        <button
+          type="submit"
+          disabled={busy}
+          className={`btn-primary w-full relative overflow-hidden ${busy ? "sweep" : ""}`}
+        >
+          {busy ? "Opening…" : value.trim() ? `Go in as ${value.trim()}` : "Go in without a name"}
+        </button>
+        <button type="button" className="btn-bare !text-xs" onClick={onBack} disabled={busy}>
+          Back
+        </button>
+      </div>
+    </form>
+  );
+}
 
 function Field({
   label, value, onChange, error, type = "text", autoComplete, hint, onBlur,

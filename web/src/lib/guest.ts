@@ -33,9 +33,16 @@ export const GUEST_DIRECTIVES = [
 
 const GUEST_INTERVENTIONS = ["shrink", "readAloud", "pause"];
 
-export async function createGuest(): Promise<Student> {
+/**
+ * @param name what the student wants to be called. Optional on purpose — it is
+ *   the only question asked before letting somebody in, and a required field
+ *   would make it a form again.
+ */
+export async function createGuest(name?: string): Promise<Student> {
+  const alias = (name ?? "").trim().slice(0, 40);
+
   const student = await api.createStudent({
-    alias: "Guest",
+    alias: alias || "Guest",
     ageBand: "middle",
     identifiesAs: null,
     defaultFormat: "skeleton",
@@ -61,7 +68,7 @@ export function explainCreateFailure(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
 
   if (/datasource|DATABASE_URL|must start with the protocol/i.test(message)) {
-    return "This copy has no database attached yet, so accounts cannot be created on it. Everything works when you run Ritmo yourself — two commands, no key.";
+    return "This hosted copy has no database attached yet, so it cannot open an account for you. Nothing you did is wrong. Run Ritmo on your own machine and everything works — clone the repository, then `npm run setup && npm run dev`. No key needed.";
   }
   if (/failed to fetch|networkerror|load failed/i.test(message)) {
     return "The app could not reach its own server. If you are running this locally, check that npm run dev is still going.";
