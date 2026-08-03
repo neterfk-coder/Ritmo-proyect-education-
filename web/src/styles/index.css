@@ -252,6 +252,66 @@
 }
 .message-in { animation: message-in 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
 
+/*
+  The account screens.
+
+  These are the first thing a new student meets, so the movement here is doing
+  a job: it says which direction you moved through the flow, and it makes the
+  wait for a round trip feel like work happening rather than nothing happening.
+*/
+
+/* Switching between sign in, register and forgot. Direction carries meaning:
+   forward is deeper into the flow, back is out of it. */
+@keyframes auth-forward {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes auth-back {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: none; }
+}
+.auth-forward { animation: auth-forward 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.auth-back    { animation: auth-back 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* A field that was rejected. One movement, small — a form that shakes hard at
+   somebody already struggling to fill it in is punishing them for trying. */
+@keyframes nudge {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-3px); }
+  75%      { transform: translateX(3px); }
+}
+.nudge { animation: nudge 0.26s ease-in-out 1; }
+
+/* The strength meter filling. */
+.meter-fill {
+  transition: width 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+              background-color 0.45s ease;
+}
+
+/* The tick drawn when a reset link has been sent, or a password accepted. */
+@keyframes draw-check {
+  from { stroke-dashoffset: 32; }
+  to   { stroke-dashoffset: 0; }
+}
+.draw-check {
+  stroke-dasharray: 32;
+  animation: draw-check 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s both;
+}
+
+/* The submit button while a request is in flight. */
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(200%); }
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22), transparent);
+  animation: sweep 1.15s ease-in-out infinite;
+}
+
 /* Format marks pick up the ink colour of whatever they sit inside. */
 .glyph { display: block; width: 1.125rem; height: 1.125rem; }
 .glyph path, .glyph rect, .glyph circle, .glyph line, .glyph polygon {
