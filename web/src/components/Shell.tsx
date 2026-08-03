@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useStudent } from "../state/StudentContext";
 import { AccessibilityBar } from "./AccessibilityBar";
 import { Companion } from "./Companion";
+import { GuestStrip } from "./GuestStrip";
 
 const NAV = [
   { to: "/work", label: "Work" },
@@ -64,6 +65,8 @@ export function Shell() {
           </div>
         </div>
       </header>
+
+      <GuestStrip />
 
       <main id="main" className="flex-1">
         <Outlet />

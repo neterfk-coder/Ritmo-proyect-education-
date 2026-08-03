@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Owl } from "../components/Owl";
+import { useStudent } from "../state/StudentContext";
+import { createGuest, explainCreateFailure } from "../lib/guest";
 import {
   AUTH_IS_STUB, AuthError, auth, checkAlias, checkEmail, checkPassword, strengthOf,
 } from "../lib/auth";
@@ -39,6 +41,7 @@ const COPY: Record<Mode, { eyebrow: string; title: string; blurb: string; submit
 export function Auth({ mode }: { mode: Mode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { setStudent } = useStudent();
 
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
@@ -47,6 +50,7 @@ export function Auth({ mode }: { mode: Mode }) {
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [guestBusy, setGuestBusy] = useState(false);
   const [done, setDone] = useState<null | "sent" | "in" | "reset">(null);
 
   // Which way the panel should come in from.
@@ -105,6 +109,24 @@ export function Auth({ mode }: { mode: Mode }) {
       }
     } finally {
       setBusy(false);
+    }
+  };
+
+  /**
+   * Straight in. This is a real account with the setup questions answered for
+   * you, not a demo sandbox — it just skips the part that stops people who
+   * came here because starting things is the hard bit.
+   */
+  const enterAsGuest = async () => {
+    setFormError(null);
+    setGuestBusy(true);
+    try {
+      setStudent(await createGuest());
+      navigate("/work");
+    } catch (err) {
+      setFormError(explainCreateFailure(err));
+    } finally {
+      setGuestBusy(false);
     }
   };
 
@@ -218,14 +240,31 @@ export function Auth({ mode }: { mode: Mode }) {
                     </button>
                   </>
                 )}
+              </nav>
+
+              {/*
+                Guest is not the small grey escape hatch at the bottom. Somebody
+                who came here stuck on starting a task should not have to get
+                through a sign-up form first — that is the same wall the product
+                exists to remove, rebuilt at the front door.
+              */}
+              <div className="border-t border-line pt-5 space-y-3">
                 <button
                   type="button"
-                  className="btn-bare ml-auto text-faint"
-                  onClick={() => navigate("/setup")}
+                  onClick={enterAsGuest}
+                  disabled={guestBusy || busy}
+                  className={`btn-quiet w-full relative overflow-hidden ${guestBusy ? "sweep" : ""}`}
                 >
-                  Skip — use it without an account
+                  {guestBusy ? "Opening…" : "Go straight in, no account"}
                 </button>
-              </nav>
+                <p className="text-xs text-faint reading">
+                  Everything works: tasks, formats, the profile, the page for your teacher. It
+                  lives in this browser, and you can pick up an account later without losing it.
+                </p>
+                <button type="button" className="btn-bare !text-xs" onClick={() => navigate("/setup")}>
+                  Or answer the setup questions first
+                </button>
+              </div>
             </form>
           )}
         </div>
