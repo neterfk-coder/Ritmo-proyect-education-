@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Backdrop } from "./components/Backdrop";
+import { Owl } from "./components/Owl";
 import { Shell } from "./components/Shell";
 import { Auth } from "./pages/Auth";
 import { Onboarding } from "./pages/Onboarding";
@@ -17,8 +18,22 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center">
-        <p className="eyebrow">Opening</p>
+      <div className="min-h-screen grid place-items-center px-6">
+        <div className="flex items-center gap-3 rise">
+          <Owl size={36} />
+          <div>
+            <p className="font-display text-2xl leading-none tracking-tight">Ritmo</p>
+            <p className="flex items-center gap-1.5 pt-2" aria-label="Opening">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="think-dot block h-1 w-1 rounded-full bg-faint"
+                  style={{ animationDelay: `${i * 0.16}s` }}
+                />
+              ))}
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

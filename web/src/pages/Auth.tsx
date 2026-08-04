@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Owl } from "../components/Owl";
 import { useStudent } from "../state/StudentContext";
 import { createGuest, explainCreateFailure } from "../lib/guest";
+import { useDocumentTitle } from "../lib/title";
 import {
   AUTH_IS_STUB, AuthError, auth, checkAlias, checkEmail, checkPassword, strengthOf,
 } from "../lib/auth";
@@ -42,6 +43,10 @@ export function Auth({ mode }: { mode: Mode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { setStudent } = useStudent();
+
+  useDocumentTitle(
+    { signin: "Sign in", register: "Set up an account", forgot: "Get back in", reset: "New password" }[mode]
+  );
 
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");

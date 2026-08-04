@@ -8,6 +8,7 @@ import { FormatSwitcher } from "../components/FormatSwitcher";
 import { ReaderPane } from "../components/ReaderPane";
 import { InterventionSheet } from "../components/InterventionSheet";
 import { TaskIntake } from "../components/TaskIntake";
+import { useDocumentTitle } from "../lib/title";
 import type { FrictionReading, Format, MicroStep, Task } from "../lib/types";
 
 const FORMAT_ORDER: Format[] = ["skeleton", "dialogue", "map", "comic", "audio"];
@@ -32,6 +33,10 @@ export function Workspace() {
 
   // Mirrors of state that the friction loop and the unmount cleanup have to
   // read without re-subscribing every time one of them changes.
+  // Named after the task, so a student coming back to a row of open tabs can
+  // tell which one holds the thing they were doing.
+  useDocumentTitle(task?.title ?? null);
+
   const sessionRef = useRef<string | null>(null);
   const formatRef = useRef<Format>(format);
   const pausedRef = useRef<number | null>(null);

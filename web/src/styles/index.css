@@ -136,6 +136,63 @@
   }
 }
 
+/*
+  On paper.
+
+  The strongest thirty seconds of this product is a student handing a teacher a
+  page about how they work — and that page gets printed. Printing the app as it
+  appears on screen would put a navigation bar, an owl and a moving background
+  onto a document meant to be taken seriously in a meeting about accommodations.
+
+  So print strips the interface down to the export itself, set in black on
+  white at a readable size.
+*/
+@media print {
+  /* Everything that is interface rather than document. */
+  header, footer, nav, canvas,
+  .no-print,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11.5pt;
+    line-height: 1.5;
+  }
+
+  /* The tint overlay is a reading aid, not part of the document. */
+  [data-tint]:not([data-tint="none"])::after { display: none !important; }
+
+  .card, .panel {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .panel-legend, .panel-meta { position: static !important; background: none !important; }
+
+  /* The export itself: let it break across pages sensibly and never orphan a
+     heading from the line under it. */
+  pre {
+    white-space: pre-wrap !important;
+    word-break: break-word;
+    font-family: inherit !important;
+  }
+
+  h1, h2, h3 { break-after: avoid-page; }
+  li, p { break-inside: avoid; }
+
+  /* Links are useless in ink unless they say where they go. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #444;
+  }
+}
+
 /* Nothing moves for anyone who asked for nothing to move. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

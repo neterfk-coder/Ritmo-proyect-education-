@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useStudent } from "../state/StudentContext";
+import { useDocumentTitle } from "../lib/title";
 import type { Insight, LearningProfile } from "../lib/types";
 
 /**
@@ -20,6 +21,8 @@ export function Profile() {
   const [draft, setDraft] = useState("");
   const [exported, setExported] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  useDocumentTitle("How I work");
 
   useEffect(() => {
     if (!student) return;
@@ -42,7 +45,13 @@ export function Profile() {
 
   return (
     <div className="mx-auto max-w-page px-6 py-12 sm:py-16 space-y-16">
-      <header className="max-w-reading space-y-4">
+      {/*
+        Once a page has been generated for a teacher, printing should produce
+        that page and nothing else. Before then, printing the profile itself is
+        a reasonable thing to want, so the class only appears when there is an
+        export on screen to take precedence over it.
+      */}
+      <header className={`max-w-reading space-y-4 ${exported ? "no-print" : ""}`}>
         <p className="eyebrow">
           {stats.sessions} sessions recorded · {stats.finished} finished
         </p>
@@ -53,7 +62,7 @@ export function Profile() {
         </p>
       </header>
 
-      <section className="space-y-6">
+      <section className={`space-y-6 ${exported ? "no-print" : ""}`}>
         <h2 className="eyebrow">What the sessions show</h2>
         {insights.length === 0 ? (
           <p className="text-muted reading max-w-reading">
@@ -93,7 +102,7 @@ export function Profile() {
         )}
       </section>
 
-      <section className="space-y-5">
+      <section className={`space-y-5 ${exported ? "no-print" : ""}`}>
         <div className="flex items-baseline gap-4 flex-wrap">
           <h2 className="eyebrow">The instructions the model gets</h2>
           {saved && <span className="text-xs text-pine">saved</span>}
@@ -145,7 +154,7 @@ export function Profile() {
       </section>
 
       {profile && (
-        <section className="space-y-5">
+        <section className={`space-y-5 ${exported ? "no-print" : ""}`}>
           <div className="flex items-baseline gap-4 flex-wrap">
             <h2 className="eyebrow">Measured</h2>
             <span className="font-mono text-[0.6875rem] text-faint">
@@ -187,22 +196,24 @@ export function Profile() {
         </section>
       )}
 
-      <section className="space-y-5 border-t border-line pt-12">
-        <h2 className="font-display text-2xl">Give it to a teacher</h2>
-        <p className="text-muted reading max-w-reading">
-          One page, in your words, with the evidence attached. This is the only way anything here
-          leaves your account, and it only happens when you press this.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {(["teacher", "family", "self"] as const).map((audience) => (
-            <button
-              key={audience}
-              className="btn-quiet"
-              onClick={async () => setExported((await api.exportProfile(student.id, audience)).body)}
-            >
-              For {audience === "self" ? "myself" : `my ${audience}`}
-            </button>
-          ))}
+      <section className="space-y-5 border-t border-line pt-12 print:border-0 print:pt-0">
+        <div className={exported ? "no-print" : ""}>
+          <h2 className="font-display text-2xl">Give it to a teacher</h2>
+          <p className="text-muted reading max-w-reading pt-3">
+            One page, in your words, with the evidence attached. This is the only way anything here
+            leaves your account, and it only happens when you press this.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-5">
+            {(["teacher", "family", "self"] as const).map((audience) => (
+              <button
+                key={audience}
+                className="btn-quiet"
+                onClick={async () => setExported((await api.exportProfile(student.id, audience)).body)}
+              >
+                For {audience === "self" ? "myself" : `my ${audience}`}
+              </button>
+            ))}
+          </div>
         </div>
 
         {exported && (
@@ -210,7 +221,7 @@ export function Profile() {
             <pre className="card p-6 whitespace-pre-wrap font-sans text-[0.9375rem] reading max-w-reading">
               {exported}
             </pre>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3 no-print">
               <button
                 className="btn-quiet"
                 onClick={() => navigator.clipboard.writeText(exported)}
@@ -220,6 +231,10 @@ export function Profile() {
               <button className="btn-quiet" onClick={() => window.print()}>
                 Print
               </button>
+              <p className="text-xs text-faint reading">
+                Printing gives you this page on its own — no menus, no colours, nothing but the
+                document.
+              </p>
             </div>
           </div>
         )}

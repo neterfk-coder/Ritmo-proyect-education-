@@ -3,11 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Ritmo — one step, lit</title>
     <meta
       name="description"
-      content="A study tool that learns how you work, then rebuilds an assignment into a shape you can enter."
+      content="A study tool for neurodivergent students. It works out what an assignment is actually asking, hands back one step small enough to start, and builds a description of how you work that you can hand to a teacher."
     />
+    <meta name="color-scheme" content="light dark" />
+
+    <!--
+      The address bar takes the colour of the default theme in each mode, so
+      the browser chrome does not sit at odds with the page under it. A student
+      who chose High contrast still gets Calm's value here — there is no media
+      query for a preference that lives in the database.
+    -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e9ece7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121614" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!--
+      What a shared link says about itself. The submission is a link, so this is
+      the first thing a judge sees of the project.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ritmo" />
+    <meta property="og:title" content="Ritmo — one step, lit" />
+    <meta
+      property="og:description"
+      content="Most study tools help a student who is stuck on the ideas. Many neurodivergent students are stuck on the shape of the task. Ritmo makes that layer explicit and hands back one action small enough to start."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Ritmo — one step, lit" />
+    <meta
+      name="twitter:description"
+      content="Works out what an assignment is actually asking, hands back one step small enough to start, and turns what it learns into a page you can give your teacher."
+    />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!--
@@ -23,6 +56,10 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      Ritmo needs JavaScript to run. If you would rather not enable it, the
+      repository holds the whole thing and it runs locally in two commands.
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

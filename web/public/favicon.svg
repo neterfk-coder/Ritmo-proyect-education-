@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!--
+    The product thesis at 16 pixels: many steps, one lit.
+
+    The same mark as the wordmark in the header, on ink rather than paper so it
+    holds its edge against both a light and a dark browser chrome. Colours are
+    literal rather than themed — a favicon is drawn once by the browser and
+    cannot follow the student's theme.
+  -->
+  <rect width="32" height="32" rx="7" fill="#16211e"/>
+  <g fill="#8a9590" fill-opacity="0.55">
+    <rect x="5.5" y="11.5" width="3" height="9" rx="1.5"/>
+    <rect x="17.5" y="11.5" width="3" height="9" rx="1.5"/>
+    <rect x="23.5" y="11.5" width="3" height="9" rx="1.5"/>
+  </g>
+  <rect x="11.5" y="8.5" width="3" height="15" rx="1.5" fill="#d99a4e"/>
+</svg>

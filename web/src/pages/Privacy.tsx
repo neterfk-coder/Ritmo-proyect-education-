@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStudent } from "../state/StudentContext";
+import { useDocumentTitle } from "../lib/title";
 
 /**
  * A page that exists because of what this product could have been.
@@ -15,6 +16,8 @@ export function Privacy() {
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useDocumentTitle("My data");
 
   if (!student) return null;
 
