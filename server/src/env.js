@@ -1,16 +1,22 @@
 import dotenv from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveDatabaseUrl } from "./lib/dbUrl.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(here, "../.env") });
 
+const { pooled: databaseUrl } = resolveDatabaseUrl();
+
 export const env = {
   port: Number(process.env.PORT ?? 4000),
-  databaseUrl: process.env.DATABASE_URL ?? "file:./dev.db",
+  databaseUrl: databaseUrl ?? "file:./dev.db",
   // A file on the student's own machine is a different privacy promise from a
   // row in somebody else's Postgres. The interface is told which one it is.
-  hosted: !(process.env.DATABASE_URL ?? "file:").startsWith("file:"),
+  // Local dev sets DATABASE_URL="file:./dev.db" itself, so "resolved to
+  // something" is not the test — "resolved to something that is not a file"
+  // is.
+  hosted: Boolean(databaseUrl) && !databaseUrl.startsWith("file:"),
   aiMode: process.env.ANTHROPIC_API_KEY ? (process.env.AI_MODE ?? "live") : "mock",
   anthropicKey: process.env.ANTHROPIC_API_KEY ?? "",
   model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",

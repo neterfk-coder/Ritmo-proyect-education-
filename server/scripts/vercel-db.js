@@ -14,13 +14,14 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveDatabaseUrl } from "../src/lib/dbUrl.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const source = path.resolve(here, "../prisma/schema.prisma");
 const target = path.resolve(here, "../prisma/pg.prisma");
 
-const url = process.env.DATABASE_URL ?? "";
-const hosted = /^postgres(ql)?:\/\//.test(url);
+const resolved = resolveDatabaseUrl();
+const hosted = Boolean(resolved.pooled) && /^postgres(ql)?:\/\//.test(resolved.pooled);
 
 /**
  * The connection to run DDL over.
@@ -31,23 +32,22 @@ const hosted = /^postgres(ql)?:\/\//.test(url);
  * carry it: the push either fails outright or hangs until the build times
  * out, with an error that says nothing about pooling.
  *
- * So: use whichever unpooled variable the provider set. Neon's Vercel
- * integration writes DATABASE_URL_UNPOOLED, Supabase writes
- * POSTGRES_URL_NON_POOLING, and a hand-configured project usually has
- * DIRECT_URL. If none exist, derive one by dropping the `-pooler` marker from
- * the host, which is Neon's own convention — and if that is not there either,
- * the URL was never pooled and is safe to use as it stands.
+ * `resolveDatabaseUrl` (`src/lib/dbUrl.js`) already found both, wherever they
+ * landed — a plain `DATABASE_URL_UNPOOLED`, or the same suffix under whatever
+ * prefix a marketplace integration chose. If there is truly no direct variant
+ * anywhere, fall back to dropping Neon's own `-pooler` marker from the host,
+ * and if that is not present either, the pooled URL was never pooled and is
+ * safe to push over as it stands.
  */
 function directUrl() {
-  const named =
-    process.env.DATABASE_URL_UNPOOLED ??
-    process.env.POSTGRES_URL_NON_POOLING ??
-    process.env.DIRECT_URL;
-  if (named) return { url: named, why: "an unpooled variable set by the provider" };
-  if (url.includes("-pooler.")) {
-    return { url: url.replace("-pooler.", "."), why: "the pooled host with -pooler removed" };
+  if (resolved.unpooled) return { url: resolved.unpooled, why: "the unpooled connection string" };
+  if (resolved.pooled?.includes("-pooler.")) {
+    return {
+      url: resolved.pooled.replace("-pooler.", "."),
+      why: "the pooled host with -pooler removed",
+    };
   }
-  return { url, why: "DATABASE_URL, which is not pooled" };
+  return { url: resolved.pooled, why: "the pooled URL, which does not look pooled" };
 }
 
 const schema = fs
@@ -76,7 +76,7 @@ const run = (args, env) =>
 run(["generate", "--schema=prisma/pg.prisma"]);
 
 if (!hosted) {
-  console.log("\n  No Postgres DATABASE_URL set — skipping schema push and seed.");
+  console.log("\n  No Postgres connection string found — skipping schema push and seed.");
   console.log("  The site will build and serve, and the API will report the missing database.");
   console.log("  Attach Postgres in the Vercel dashboard, then redeploy.\n");
   process.exit(0);
