@@ -1,0 +1,33 @@
+# What must never leave this machine.
+#
+# Without this file the Vercel CLI uploaded the whole working directory, which
+# meant two things were shipped to a third party on every deploy:
+#
+#   server/.env            local configuration, including key slots
+#   server/prisma/dev.db   the local SQLite database, with test students in it
+#
+# The .env one also broke the hosted deploy outright rather than just leaking:
+# env.js loads it with dotenv, so a bundled .env set DATABASE_URL to
+# "file:./dev.db" and shadowed the real Postgres connection the platform had
+# already provided. The app then reported no database while sitting on one.
+#
+# A student's data living in a file on their own machine is the privacy promise
+# this product makes. Uploading that file is the one thing that cannot happen.
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Build output and caches — the host rebuilds these itself.
+node_modules
+web/dist
+server/prisma/pg.prisma
+
+# Local tooling
+.git
+.vscode
+.idea
+*.log

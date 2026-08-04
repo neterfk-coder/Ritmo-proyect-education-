@@ -7,8 +7,20 @@
  * often. A demo that only ever shows success teaches the reviewer nothing.
  */
 import { PrismaClient } from "@prisma/client";
+import { resolveDatabaseUrl } from "../src/lib/dbUrl.js";
 
-const db = new PrismaClient();
+/**
+ * Same resolver as the runtime and the build script, for the same reason:
+ * plain `DATABASE_URL` does not reliably exist under that name on a hosted
+ * deploy — see `src/lib/dbUrl.js`. Constructing `new PrismaClient()` with no
+ * argument here made this the one place still trusting the schema's own
+ * `env("DATABASE_URL")` lookup, and it failed silently after the schema push
+ * that runs immediately before it — the push succeeded because
+ * `vercel-db.js` passes the resolved URL explicitly to that child process,
+ * seeding did not because this file went its own way.
+ */
+const { pooled } = resolveDatabaseUrl();
+const db = new PrismaClient(pooled ? { datasourceUrl: pooled } : undefined);
 
 const INTERVENTIONS = [
   { key: "shrink", label: "Make this step smaller", order: 0, enabled: true },

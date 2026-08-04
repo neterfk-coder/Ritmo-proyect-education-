@@ -4,7 +4,22 @@ import { fileURLToPath } from "node:url";
 import { resolveDatabaseUrl } from "./lib/dbUrl.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(here, "../.env") });
+
+/**
+ * A `.env` file is a local-development convenience. On a host, the environment
+ * *is* the configuration, and a file that happens to be lying around must not
+ * be allowed to speak over it.
+ *
+ * This is not hypothetical tidiness. A bundled `server/.env` set
+ * DATABASE_URL="file:./dev.db", which shadowed the Postgres connection Vercel
+ * had already injected, and the API reported "no database" while a perfectly
+ * good one sat attached — with an error about SQLite paths that pointed
+ * nowhere near the actual cause. `.vercelignore` now stops that file shipping
+ * at all; this stops it mattering even if something ever ships it again.
+ */
+if (!process.env.VERCEL) {
+  dotenv.config({ path: path.resolve(here, "../.env") });
+}
 
 const { pooled: databaseUrl } = resolveDatabaseUrl();
 
