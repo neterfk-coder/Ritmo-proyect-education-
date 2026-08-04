@@ -1,4 +1,4 @@
-import { complete, parseJson } from "./client.js";
+import { activeModel, complete, parseJson } from "./client.js";
 import { decomposePrompt, systemFor } from "./prompts.js";
 import { mockDecompose } from "./mock.js";
 import { env } from "../env.js";
@@ -20,7 +20,7 @@ export async function decompose({ rawText, student, profile, lang = "en" }) {
     });
     const parsed = parseJson(text);
     if (!parsed?.steps?.length) return mockDecompose(rawText, lang);
-    return { ...normalise(parsed), model: env.model };
+    return { ...normalise(parsed), model: activeModel() };
   } catch (err) {
     console.warn("decompose fell back to mock:", err.message);
     return mockDecompose(rawText, lang);

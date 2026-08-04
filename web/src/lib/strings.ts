@@ -323,7 +323,9 @@ const S = {
   },
   "intake.sayIt": { en: "Say it instead", es: "Dilo en voz alta" },
   "intake.stopTalking": { en: "Stop talking", es: "Deja de hablar" },
-  "intake.openFile": { en: "Open a text file", es: "Abrir un archivo de texto" },
+  // Names PDF explicitly. A student holding one will not try a button that
+  // only promises text files.
+  "intake.openFile": { en: "Open a PDF or text file", es: "Abrir un PDF o archivo de texto" },
   "intake.word": { en: "word", es: "palabra" },
   "intake.words": { en: "words", es: "palabras" },
   "intake.listening": {
@@ -342,6 +344,26 @@ const S = {
   "intake.noDictation": {
     en: "This browser has no dictation. Chrome and Edge do.",
     es: "Este navegador no tiene dictado. Chrome y Edge sí.",
+  },
+  "intake.readingPdf": {
+    en: "Reading the PDF. This happens on your device — the file itself is not sent anywhere.",
+    es: "Leyendo el PDF. Esto pasa en tu dispositivo: el archivo en sí no se envía a ningún sitio.",
+  },
+  "intake.pdfTooLarge": {
+    en: "That PDF is very large. Open it and copy across the pages you actually need.",
+    es: "Ese PDF es muy grande. Ábrelo y copia solo las páginas que necesitas de verdad.",
+  },
+  "intake.pdfLocked": {
+    en: "That PDF is password protected, so it cannot be opened here. Open it yourself and paste the text across.",
+    es: "Ese PDF está protegido con contraseña, así que no se puede abrir aquí. Ábrelo tú y pega el texto.",
+  },
+  "intake.pdfScanned": {
+    en: "That PDF is a picture of a page rather than text, so there is nothing to read out of it. If you can select the words in a PDF reader, copy them across. If not, the dictation button is faster than typing.",
+    es: "Ese PDF es una foto de una página, no texto, así que no hay nada que leer dentro. Si puedes seleccionar las palabras en un lector de PDF, cópialas aquí. Si no, el botón de dictado es más rápido que escribir.",
+  },
+  "intake.pdfBroken": {
+    en: "That PDF could not be opened. Paste the text in instead and it will work the same.",
+    es: "No se ha podido abrir ese PDF. Pega el texto y funcionará igual.",
   },
 
   /* ---------- workspace ---------- */

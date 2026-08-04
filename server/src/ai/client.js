@@ -1,38 +1,73 @@
 import { env } from "../env.js";
 import { ApiError } from "../lib/http.js";
 
-const ENDPOINT = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 
 /**
  * Single point of contact with the model. Everything else in the app calls
  * this, so swapping providers, adding retries, or logging cost happens once.
+ *
+ * Two providers behind one function. The companion has had this for a while;
+ * the decomposition pipeline did not, which meant a project holding a working
+ * Groq key still ran every assignment through the offline templates.
  */
 const TIMEOUT_MS = 30000;
+
+/**
+ * The model that will actually answer.
+ *
+ * Callers record this against what they produced. Reading `env.model`
+ * directly labelled Groq's output as Anthropic's, which is the kind of wrong
+ * that is invisible until somebody is trying to work out why a result looks
+ * unfamiliar.
+ */
+export const activeModel = () => (env.aiProvider === "groq" ? env.groqModel : env.model);
 
 export async function complete({ system, user, maxTokens = 1600 }) {
   if (env.aiMode === "mock") {
     throw new ApiError(503, "Running in mock mode.");
   }
 
+  const request =
+    env.aiProvider === "groq"
+      ? {
+          endpoint: `${env.groqBaseUrl}/chat/completions`,
+          headers: { authorization: `Bearer ${env.groqKey}` },
+          // OpenAI-compatible: the system prompt is the first message rather
+          // than its own field.
+          body: {
+            model: env.groqModel,
+            max_tokens: maxTokens,
+            temperature: 0.3,
+            messages: [
+              { role: "system", content: system },
+              { role: "user", content: user },
+            ],
+          },
+          read: (data) => data.choices?.[0]?.message?.content?.trim() ?? "",
+        }
+      : {
+          endpoint: ANTHROPIC_ENDPOINT,
+          headers: { "x-api-key": env.anthropicKey, "anthropic-version": "2023-06-01" },
+          body: { model: env.model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] },
+          read: (data) =>
+            data.content
+              .filter((block) => block.type === "text")
+              .map((block) => block.text)
+              .join("\n")
+              .trim(),
+        };
+
   // Without this a hung connection never returns, so the callers' fallback to
   // the offline engine never fires and the student waits on a blank screen —
   // the exact failure the fallback exists to prevent.
   let res;
   try {
-    res = await fetch(ENDPOINT, {
+    res = await fetch(request.endpoint, {
       method: "POST",
       signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": env.anthropicKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: env.model,
-        max_tokens: maxTokens,
-        system,
-        messages: [{ role: "user", content: user }],
-      }),
+      headers: { "content-type": "application/json", ...request.headers },
+      body: JSON.stringify(request.body),
     });
   } catch (err) {
     const timedOut = err.name === "TimeoutError" || err.name === "AbortError";
@@ -44,12 +79,7 @@ export async function complete({ system, user, maxTokens = 1600 }) {
     throw new ApiError(502, "The model did not answer.", body.slice(0, 400));
   }
 
-  const data = await res.json();
-  return data.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n")
-    .trim();
+  return request.read(await res.json());
 }
 
 /** Models sometimes wrap JSON in fences. Strip them before parsing. */

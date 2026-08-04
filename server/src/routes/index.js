@@ -12,7 +12,16 @@ api.get("/health", (_req, res) =>
   res.json({
     ok: true,
     aiMode: env.aiMode,
-    model: env.aiMode === "live" ? env.model : null,
+    // The model that actually reads assignments, named by the provider that
+    // will answer. Reporting env.model unconditionally claimed Anthropic was
+    // running on a deploy where Groq was.
+    model:
+      env.aiMode !== "live"
+        ? null
+        : env.aiProvider === "groq"
+          ? env.groqModel
+          : env.model,
+    aiProvider: env.aiMode === "live" ? env.aiProvider : null,
     companion: env.companionProvider,
     // The privacy page describes the instance you are actually using, not the
     // one we would prefer you were using. Hosted and local are not the same

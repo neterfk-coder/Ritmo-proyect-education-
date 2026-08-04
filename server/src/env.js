@@ -32,7 +32,27 @@ export const env = {
   // something" is not the test — "resolved to something that is not a file"
   // is.
   hosted: Boolean(databaseUrl) && !databaseUrl.startsWith("file:"),
-  aiMode: process.env.ANTHROPIC_API_KEY ? (process.env.AI_MODE ?? "live") : "mock",
+  /*
+    Which engine reads the student's actual assignment.
+
+    This used to ask only about ANTHROPIC_API_KEY, so a deploy with a Groq key
+    and nothing else sat in mock mode: the owl answered with a live model while
+    every assignment pasted into the app got the template engine's six generic
+    steps, identical whatever was pasted. The key was present, configured and
+    working, and none of it reached the one place the product is judged on.
+
+    Either key now counts, and `aiProvider` says which one is answering.
+  */
+  aiMode:
+    process.env.ANTHROPIC_API_KEY || process.env.GROQ_API_KEY
+      ? (process.env.AI_MODE ?? "live")
+      : "mock",
+
+  // anthropic | groq. Anthropic wins when both are set, because it is the one
+  // the decomposition prompts were written and tested against.
+  aiProvider:
+    process.env.AI_PROVIDER ?? (process.env.ANTHROPIC_API_KEY ? "anthropic" : "groq"),
+
   anthropicKey: process.env.ANTHROPIC_API_KEY ?? "",
   model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
 
