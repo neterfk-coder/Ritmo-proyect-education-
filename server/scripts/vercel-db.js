@@ -22,6 +22,34 @@ const target = path.resolve(here, "../prisma/pg.prisma");
 const url = process.env.DATABASE_URL ?? "";
 const hosted = /^postgres(ql)?:\/\//.test(url);
 
+/**
+ * The connection to run DDL over.
+ *
+ * Every serverless Postgres worth using — Neon, Supabase, Prisma Postgres —
+ * hands out two strings: a pooled one for queries, and a direct one for
+ * everything else. `db push` is DDL, and a transaction-mode pooler cannot
+ * carry it: the push either fails outright or hangs until the build times
+ * out, with an error that says nothing about pooling.
+ *
+ * So: use whichever unpooled variable the provider set. Neon's Vercel
+ * integration writes DATABASE_URL_UNPOOLED, Supabase writes
+ * POSTGRES_URL_NON_POOLING, and a hand-configured project usually has
+ * DIRECT_URL. If none exist, derive one by dropping the `-pooler` marker from
+ * the host, which is Neon's own convention — and if that is not there either,
+ * the URL was never pooled and is safe to use as it stands.
+ */
+function directUrl() {
+  const named =
+    process.env.DATABASE_URL_UNPOOLED ??
+    process.env.POSTGRES_URL_NON_POOLING ??
+    process.env.DIRECT_URL;
+  if (named) return { url: named, why: "an unpooled variable set by the provider" };
+  if (url.includes("-pooler.")) {
+    return { url: url.replace("-pooler.", "."), why: "the pooled host with -pooler removed" };
+  }
+  return { url, why: "DATABASE_URL, which is not pooled" };
+}
+
 const schema = fs
   .readFileSync(source, "utf8")
   .replace('provider = "sqlite"', 'provider = "postgresql"')
@@ -35,8 +63,13 @@ const schema = fs
 fs.writeFileSync(target, schema);
 console.log("  Wrote prisma/pg.prisma from schema.prisma (provider -> postgresql)");
 
-const run = (args) =>
-  execFileSync("npx", ["prisma", ...args], { stdio: "inherit", shell: true, cwd: path.resolve(here, "..") });
+const run = (args, env) =>
+  execFileSync("npx", ["prisma", ...args], {
+    stdio: "inherit",
+    shell: true,
+    cwd: path.resolve(here, ".."),
+    env: { ...process.env, ...env },
+  });
 
 // The client is always needed — the function cannot import a client that was
 // never generated, whether or not a database is reachable right now.
@@ -49,7 +82,12 @@ if (!hosted) {
   process.exit(0);
 }
 
-run(["db", "push", "--schema=prisma/pg.prisma", "--accept-data-loss", "--skip-generate"]);
+const direct = directUrl();
+console.log(`  Pushing over ${direct.why}`);
+run(
+  ["db", "push", "--schema=prisma/pg.prisma", "--accept-data-loss", "--skip-generate"],
+  { DATABASE_URL: direct.url }
+);
 console.log("  Schema pushed to Postgres");
 
 try {
