@@ -378,6 +378,24 @@ const S = {
   },
   "work.task": { en: "Task", es: "Tarea" },
   "work.totalMinutes": { en: "about {n} min in total", es: "unos {n} min en total" },
+  /* the worked solution, opened deliberately */
+  "solution.open": { en: "Check my result", es: "Comprobar mi resultado" },
+  "solution.close": { en: "Put the solution away", es: "Guardar la solución" },
+  "solution.legend": { en: "The solution", es: "La solución" },
+  "solution.working": { en: "Working it out", es: "Resolviéndolo" },
+  "solution.note": {
+    en: "Try the steps first. Comparing a finished attempt against this is worth something; reading it instead of attempting is not.",
+    es: "Prueba antes con los pasos. Comparar un intento terminado con esto vale algo; leerlo en vez de intentarlo, no.",
+  },
+  "solution.methodNote": {
+    en: "This assignment asks for your own work, so what follows is the same technique on a different example — not the thing you have to hand in.",
+    es: "Esta tarea pide tu propio trabajo, así que lo de abajo es la misma técnica sobre otro ejemplo distinto, no lo que tienes que entregar.",
+  },
+  "solution.failed": {
+    en: "The solution could not be worked out just now. The steps above are unaffected — try again in a moment.",
+    es: "No se ha podido resolver ahora mismo. Los pasos de arriba no se ven afectados: inténtalo en un momento.",
+  },
+
   "work.finished": { en: "I am finished with this", es: "He terminado con esto" },
   "work.putAway": { en: "Put it away without finishing", es: "Guardarlo sin terminar" },
   "work.eitherKeeps": {

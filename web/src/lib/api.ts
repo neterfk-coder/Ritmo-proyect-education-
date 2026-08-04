@@ -76,6 +76,13 @@ export const api = {
       body: JSON.stringify({ format }),
     }),
 
+  /** Written on the server only when this is called. See tasks.js. */
+  solveTask: (taskId: string) =>
+    call<{ kind: "worked" | "method" | "unavailable"; body: string; cached: boolean }>(
+      `/tasks/${taskId}/solution`,
+      { method: "POST" }
+    ),
+
   shrinkStep: (stepId: string) =>
     call<{ id: string; text: string }>(`/tasks/steps/${stepId}/shrink`, { method: "POST" }),
 

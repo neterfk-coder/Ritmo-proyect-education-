@@ -6,6 +6,7 @@ import { langOf } from "../lib/lang.js";
 import { parse } from "../lib/validate.js";
 import { decompose } from "../ai/decompose.js";
 import { reformat, FORMATS } from "../ai/reformat.js";
+import { solve } from "../ai/solve.js";
 
 export const tasks = Router();
 
@@ -135,6 +136,64 @@ tasks.post(
       data: { taskId: task.id, format, lang, body, wordCount: body.split(/\s+/).length },
     });
     res.status(201).json({ ...rendering, cached: false });
+  })
+);
+
+/**
+ * The worked solution, on request only.
+ *
+ * A POST rather than a GET because the first call creates something that did
+ * not exist. Nothing is written until a student presses the button, which is
+ * what makes "you opened this deliberately" true rather than decorative — an
+ * answer generated with the steps and merely folded away in the page would be
+ * one right-click from being read without ever deciding to.
+ *
+ * Kept once written, keyed by language: a student who switches to English
+ * should get the solution in English rather than the Spanish one they opened
+ * an hour ago, and re-solving a quadratic to translate it is a model call for
+ * nothing.
+ */
+tasks.post(
+  "/:id/solution",
+  route(async (req, res) => {
+    const lang = langOf(req);
+    const task = await db.task.findUnique({
+      where: { id: req.params.id },
+      include: { decomposition: true, student: { include: { profile: true } } },
+    });
+    if (!task) throw new ApiError(404, "That task is not here.");
+    if (!task.decomposition) throw new ApiError(409, "That task has not been worked out yet.");
+
+    const held = task.decomposition;
+    if (held.solution && held.solutionLang === lang) {
+      return res.json({ kind: held.solutionKind, body: held.solution, cached: true });
+    }
+
+    const profile = task.student.profile
+      ? { ...task.student.profile, directives: json.read(task.student.profile.directives) }
+      : { directives: [] };
+
+    let result;
+    try {
+      result = await solve({ rawText: task.rawText, student: task.student, profile, lang });
+    } catch (err) {
+      // The steps are still on screen and still correct. Failing to produce a
+      // solution is a disappointment, not a broken page, and it must not read
+      // like one.
+      throw new ApiError(502, "The solution could not be worked out just now.", err.message);
+    }
+
+    // "unavailable" is a real answer about this deployment rather than a
+    // solution, so it is not stored — configure a key and the next press
+    // should try properly instead of replaying the apology.
+    if (result.kind !== "unavailable") {
+      await db.decomposition.update({
+        where: { id: held.id },
+        data: { solution: result.body, solutionKind: result.kind, solutionLang: lang },
+      });
+    }
+
+    res.json({ kind: result.kind, body: result.body, cached: false });
   })
 );
 

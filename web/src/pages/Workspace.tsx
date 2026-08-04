@@ -8,6 +8,7 @@ import { FormatSwitcher } from "../components/FormatSwitcher";
 import { ReaderPane } from "../components/ReaderPane";
 import { InterventionSheet } from "../components/InterventionSheet";
 import { TaskIntake } from "../components/TaskIntake";
+import { Solution } from "../components/Solution";
 import { useDocumentTitle } from "../lib/title";
 import { useT } from "../lib/i18n";
 import type { T } from "../lib/i18n";
@@ -307,6 +308,10 @@ export function Workspace() {
       )}
 
       {task.decomposition && <ContractCard d={task.decomposition} />}
+
+      {/* Below the steps and the contract on purpose. The order on the page is
+          the argument: what it asks, what to do, and only then the answer. */}
+      {task.decomposition && <Solution taskId={task.id} />}
 
       <div className="space-y-6 border-t border-line pt-10">
         <FormatSwitcher

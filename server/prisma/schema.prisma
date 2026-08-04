@@ -125,6 +125,22 @@ model Decomposition {
   model           String @default("mock")
   createdAt       DateTime @default(now())
 
+  // The worked solution, written only when the student asks for it.
+  //
+  // Not generated alongside the decomposition, for a reason that is the whole
+  // point of the feature: an answer produced up front and merely hidden in the
+  // page is one right-click away, which makes "you open it deliberately" a
+  // decoration rather than a fact. Nothing exists here until somebody presses
+  // the button, and then it is kept so the second look is free.
+  //
+  // solutionKind is "worked" when the task has a determinate answer and this
+  // holds it, or "method" when the task asks the student to produce something
+  // original — an essay, a design, an opinion — where handing back the artefact
+  // would be doing the homework. See ai/prompts.js for what each contains.
+  solution     String?
+  solutionKind String?
+  solutionLang String?
+
   steps MicroStep[]
 }
 

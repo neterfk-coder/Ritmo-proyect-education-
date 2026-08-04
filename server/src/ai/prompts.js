@@ -126,6 +126,71 @@ ${rawText}
 </material>`;
 }
 
+/**
+ * The worked solution, produced only when the student presses for it.
+ *
+ * The hard part of this prompt is not solving anything — it is the line between
+ * two kinds of task that look identical when pasted in.
+ *
+ * A quadratic has an answer. Showing the working and stating x = 5 is what a
+ * textbook's back pages have always done, and a student who has attempted the
+ * steps and wants to know whether they landed is asking a reasonable question
+ * that Ritmo previously could not answer at all.
+ *
+ * An essay has no answer. "Discuss the symbolism of water in 800 words" has an
+ * artefact the student is being marked on producing, and writing it here would
+ * not be checking their work, it would be replacing it. So that branch returns
+ * the technique demonstrated on a deliberately different example, plus the
+ * checks they can run against their own — useful, and not submittable.
+ *
+ * The model decides which it is, because only the model has read the task.
+ */
+export function solutionPrompt(rawText) {
+  return `Here is an assignment a student has been working on. They have
+already been given it broken into steps, have attempted it, and have now
+deliberately asked to see the solution.
+
+<assignment>
+${rawText}
+</assignment>
+
+First decide which kind of task this is.
+
+"worked" — the task has a determinate answer that can be checked: an equation,
+a calculation, a conversion, a translation of a specific sentence, a factual
+question with one correct response. Anything where two competent people would
+produce the same result.
+
+"method" — the task asks the student to produce something original that is
+marked on their own thinking: an essay, an argument, an opinion, a piece of
+creative writing, a design, a personal reflection. Anything where two competent
+people would produce different work and both be right.
+
+For "worked": show the working line by line, in order, then state the result
+plainly. Name the rule or operation used at each line so the student can see
+where their own attempt diverged. Do not skip the algebra. If there are several
+parts, do all of them.
+
+For "method": DO NOT write the thing they were asked to produce. That would be
+doing the assignment, not showing a solution. Instead give:
+  - the same technique demonstrated on a clearly different example of your own
+  - a short list of concrete checks they can run against their own draft
+State at the top, in one sentence, that this is a demonstration on a different
+example because the assignment asks for their own work.
+
+Answer in exactly this shape, and nothing else:
+
+KIND: worked
+---
+the solution here, in plain text, across as many lines as it needs
+
+Deliberately not JSON. The body of a solution is multi-line prose and working,
+and a raw newline inside a JSON string is invalid JSON — asking for one is
+asking for a malformed answer that loses the content it was carrying. The first
+line names the kind, the marker ends the header, and everything after it is the
+answer verbatim. No markdown headings, no bold, no code fences.`;
+}
+
 export function insightPrompt(summary) {
   return `Here is aggregate data from one student's sessions.
 
