@@ -343,6 +343,36 @@ const S = {
     en: "A little more of it, and this turns on.",
     es: "Un poco más y esto se enciende.",
   },
+
+  /* how much fits — the limit the server enforces, said before it is hit */
+  "intake.capacityEmpty": {
+    en: "about {pages} pages fit",
+    es: "caben unas {pages} páginas",
+  },
+  "intake.capacityCrowded": {
+    en: "{n} words · nearly full",
+    es: "{n} palabras · casi lleno",
+  },
+  "intake.capacityOver": {
+    en: "{n} characters over",
+    es: "{n} caracteres de más",
+  },
+  "intake.tooMuch": {
+    en: "That is {n} characters more than fits. Cut it down to the part you actually have to do — the rest is not needed to work out what is being asked.",
+    es: "Eso son {n} caracteres más de los que caben. Recórtalo a la parte que de verdad tienes que hacer: el resto no hace falta para averiguar qué te piden.",
+  },
+  "intake.pdfOnePage": {
+    en: "One page read.",
+    es: "Una página leída.",
+  },
+  "intake.pdfPages": {
+    en: "{n} pages read.",
+    es: "{n} páginas leídas.",
+  },
+  "intake.pdfTrimmed": {
+    en: "Read the first {read} of {total} pages — that already fills the box. If what you need is further in, delete from the top and drop the file again.",
+    es: "Se leyeron las primeras {read} de {total} páginas: con eso ya se llena la caja. Si lo que necesitas está más adelante, borra desde arriba y vuelve a soltar el archivo.",
+  },
   "intake.tooLarge": {
     en: "That file is larger than this reads. Paste the part you need instead.",
     es: "Ese archivo es más grande de lo que esto lee. Pega solo la parte que necesitas.",

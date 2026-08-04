@@ -17,6 +17,8 @@
  * it.
  */
 
+import { MAX_CHARS } from "./limits";
+
 /** Roughly two hundred pages. Past this it is not homework, it is a textbook. */
 export const MAX_PDF_BYTES = 20_000_000;
 
@@ -24,6 +26,15 @@ export class PdfError extends Error {
   constructor(public reason: "encrypted" | "empty" | "broken") {
     super(reason);
   }
+}
+
+export interface PdfText {
+  text: string;
+  /** Pages actually read. Fewer than `totalPages` when the box filled up. */
+  pagesRead: number;
+  totalPages: number;
+  /** True when reading stopped because there was no room for more. */
+  stoppedEarly: boolean;
 }
 
 let loading: Promise<typeof import("pdfjs-dist")> | null = null;
@@ -50,7 +61,7 @@ async function library() {
 export async function extractPdfText(
   file: File,
   onProgress?: (fraction: number) => void
-): Promise<string> {
+): Promise<PdfText> {
   const pdfjs = await library();
 
   let doc;
@@ -73,7 +84,19 @@ export async function extractPdfText(
   }
 
   const pages: string[] = [];
-  for (let n = 1; n <= doc.numPages; n += 1) {
+  let stoppedEarly = false;
+  let n = 1;
+
+  for (; n <= doc.numPages; n += 1) {
+    // Stop once there is already more than can be submitted. Reading the
+    // remaining hundred pages of a textbook costs the student a wait and then
+    // gives them a box they have to cut down anyway — and it is the wait that
+    // lands at the exact moment they finally sat down.
+    if (pages.join("\n\n").length >= MAX_CHARS) {
+      stoppedEarly = true;
+      break;
+    }
+
     const page = await doc.getPage(n);
     const content = await page.getTextContent();
 
@@ -100,5 +123,42 @@ export async function extractPdfText(
   // A PDF made by scanning a worksheet has no text layer at all. Saying "it is
   // a picture" is actionable; handing back an empty box is not.
   if (!joined) throw new PdfError("empty");
-  return joined;
+
+  // Stopping at the page boundary lands just *over* the limit, because the
+  // page that crossed it was already read whole. Handing that back means
+  // dropping a PDF and finding the button disabled by a hundred characters,
+  // which reads as broken rather than as a limit. So trim to fit, on a
+  // paragraph break where there is one and a word break otherwise — never
+  // mid-word, which looks like corruption.
+  const text = joined.length > MAX_CHARS ? trimToFit(joined) : joined;
+
+  return {
+    text,
+    // Pages whose text survived the trim whole, so the count the student is
+    // told matches the text they can actually see.
+    pagesRead: text.length < joined.length ? countWholePages(pages, text) : pages.length,
+    totalPages: doc.numPages,
+    stoppedEarly: stoppedEarly || text.length < joined.length,
+  };
+}
+
+function trimToFit(text: string): string {
+  const cut = text.slice(0, MAX_CHARS);
+  const paragraph = cut.lastIndexOf("\n\n");
+  // Only respect a paragraph break if it is not throwing away most of what
+  // fits — on a single unbroken page there may be no break until the start.
+  if (paragraph > MAX_CHARS * 0.6) return cut.slice(0, paragraph).trim();
+  const word = cut.lastIndexOf(" ");
+  return (word > 0 ? cut.slice(0, word) : cut).trim();
+}
+
+function countWholePages(pages: string[], kept: string): number {
+  let n = 0;
+  let used = 0;
+  for (const page of pages.filter(Boolean)) {
+    used += (n === 0 ? 0 : 2) + page.length; // the "\n\n" between pages
+    if (used > kept.length) break;
+    n += 1;
+  }
+  return Math.max(1, n);
 }

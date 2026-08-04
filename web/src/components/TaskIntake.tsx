@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { listen } from "../lib/speech";
 import { useT } from "../lib/i18n";
 import { MAX_PDF_BYTES, PdfError, extractPdfText } from "../lib/pdf";
+import { PAGES_THAT_FIT, capacityOf } from "../lib/limits";
 import { Decompiling } from "./Decompiling";
 
 /**
@@ -21,14 +22,18 @@ export function TaskIntake({
   const [dictating, setDictating] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [reading, setReading] = useState<number | null>(null);
   const recognition = useRef<{ stop: () => void } | null>(null);
+
+  const capacity = capacityOf(text);
 
   const isPdf = (file: File) =>
     file.type === "application/pdf" || /\.pdf$/i.test(file.name);
 
   const readFile = async (file: File) => {
     setError(null);
+    setNote(null);
 
     if (isPdf(file)) {
       if (file.size > MAX_PDF_BYTES) {
@@ -37,10 +42,22 @@ export function TaskIntake({
       }
       setReading(0);
       try {
-        const extracted = await extractPdfText(file, setReading);
+        const pdf = await extractPdfText(file, setReading);
         // Appended rather than replacing, so dropping a PDF onto something
         // already typed does not silently delete it.
-        setText((prev) => (prev.trim() ? `${prev.trim()}\n\n${extracted}` : extracted));
+        setText((prev) => (prev.trim() ? `${prev.trim()}\n\n${pdf.text}` : pdf.text));
+
+        // Say what was read. A student who dropped in a 40-page PDF and got
+        // six pages back needs to know that happened, and that it was the
+        // limit rather than a failure — otherwise the missing pages look like
+        // a bug and they lose trust in everything that follows.
+        setNote(
+          pdf.stoppedEarly
+            ? t("intake.pdfTrimmed", { read: pdf.pagesRead, total: pdf.totalPages })
+            : pdf.totalPages === 1
+              ? t("intake.pdfOnePage")
+              : t("intake.pdfPages", { n: pdf.totalPages })
+        );
       } catch (err) {
         setError(
           err instanceof PdfError
@@ -136,13 +153,59 @@ export function TaskIntake({
               onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])}
             />
           </label>
-          <span className="ml-auto font-mono text-[0.6875rem] text-faint">
-            {words} {words === 1 ? t("intake.word") : t("intake.words")}
+          {/*
+            The capacity line. It says the same thing three ways depending on
+            where you are, because the useful sentence changes:
+
+              empty     → how much fits, answering "can I paste all of this?"
+                          before somebody spends effort finding out
+              typing    → just the count, staying out of the way
+              crowded   → the count and the fact that room is running out
+              over      → exactly how much has to go, as a number they can act
+                          on rather than "too long"
+
+            aria-live so a screen reader hears the state change at the moment
+            the button stops working, rather than discovering it by pressing.
+          */}
+          <span
+            className={`ml-auto font-mono text-[0.6875rem] tabular-nums transition-colors
+                        duration-200 ${capacity.over ? "text-ink" : "text-faint"}`}
+            aria-live="polite"
+          >
+            {capacity.chars === 0
+              ? t("intake.capacityEmpty", { pages: PAGES_THAT_FIT })
+              : capacity.over
+                ? t("intake.capacityOver", { n: capacity.excess.toLocaleString() })
+                : capacity.crowded
+                  ? t("intake.capacityCrowded", { n: capacity.words.toLocaleString() })
+                  : `${capacity.words.toLocaleString()} ${
+                      capacity.words === 1 ? t("intake.word") : t("intake.words")
+                    }`}
           </span>
         </div>
+
+        {/* Drawn only once it matters. A gauge that sits at 3% full for the
+            whole of a normal paste is noise on a screen built to have as
+            little of it as possible. */}
+        {(capacity.crowded || capacity.over) && (
+          <div className="h-px bg-line" aria-hidden>
+            <div
+              className={`h-px transition-[width] duration-300 ease-calm ${
+                capacity.over ? "bg-ink" : "bg-lit"
+              }`}
+              style={{ width: `${Math.min(100, Math.round(capacity.fraction * 100))}%` }}
+            />
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-muted reading max-w-reading">{error}</p>}
+
+      {/* What the PDF turned out to be. Sits apart from `error` because it is
+          not one — the read worked, this is just what it found. */}
+      {note && !error && (
+        <p className="text-xs text-faint reading max-w-reading rise">{note}</p>
+      )}
 
       {/* A long PDF is several seconds of nothing. Say it is moving, and say
           how far, because this is a wait that lands right when somebody has
@@ -170,11 +233,23 @@ export function TaskIntake({
       )}
 
       <div className="flex flex-wrap items-center gap-4">
-        <button className="btn-primary" disabled={!ready} onClick={() => onSubmit(text.trim())}>
+        <button
+          className="btn-primary"
+          disabled={!capacity.ready}
+          onClick={() => onSubmit(text.trim())}
+        >
           {t("intake.submit")}
         </button>
-        {!ready && text.length > 0 && (
-          <p className="text-xs text-faint">{t("intake.needMore")}</p>
+        {/* Over the limit is a different problem from under it, and the old
+            copy — "a little more of it, and this turns on" — was actively
+            wrong in one of those directions. */}
+        {capacity.over ? (
+          <p className="text-xs text-muted reading max-w-reading">
+            {t("intake.tooMuch", { n: capacity.excess.toLocaleString() })}
+          </p>
+        ) : (
+          !capacity.ready &&
+          capacity.chars > 0 && <p className="text-xs text-faint">{t("intake.needMore")}</p>
         )}
       </div>
     </div>
