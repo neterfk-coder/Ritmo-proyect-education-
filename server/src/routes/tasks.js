@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db, json } from "../db.js";
 import { route, ApiError } from "../lib/http.js";
+import { langOf } from "../lib/lang.js";
 import { parse } from "../lib/validate.js";
 import { decompose } from "../ai/decompose.js";
 import { reformat, FORMATS } from "../ai/reformat.js";
@@ -33,7 +34,7 @@ tasks.post(
       ? { ...student.profile, directives: json.read(student.profile.directives) }
       : { directives: [] };
 
-    const result = await decompose({ rawText: body.rawText, student, profile });
+    const result = await decompose({ rawText: body.rawText, student, profile, lang: langOf(req) });
 
     const task = await db.task.create({
       data: {
@@ -97,11 +98,19 @@ tasks.get(
   })
 );
 
-/** Same content, new shape. Cached per (task, format) so the second look is instant. */
+/**
+ * Same content, new shape. Cached per (task, format, language).
+ *
+ * The language belongs in the key. Without it, a student who switched to
+ * Spanish and reopened a shape they had already looked at got the English one
+ * back — the cache is keyed on what was asked for, and the language is part of
+ * what was asked for.
+ */
 tasks.post(
   "/:id/render",
   route(async (req, res) => {
     const { format } = parse(z.object({ format: z.enum(FORMATS) }), req.body);
+    const lang = langOf(req);
 
     const task = await db.task.findUnique({
       where: { id: req.params.id },
@@ -110,7 +119,7 @@ tasks.post(
     if (!task) throw new ApiError(404, "That task is not here.");
 
     const cached = await db.rendering.findUnique({
-      where: { taskId_format: { taskId: task.id, format } },
+      where: { taskId_format_lang: { taskId: task.id, format, lang } },
     });
     if (cached) return res.json({ ...cached, cached: true });
 
@@ -118,10 +127,12 @@ tasks.post(
       ? { ...task.student.profile, directives: json.read(task.student.profile.directives) }
       : { directives: [] };
 
-    const body = await reformat({ rawText: task.rawText, format, student: task.student, profile });
+    const body = await reformat({
+      rawText: task.rawText, format, student: task.student, profile, lang,
+    });
 
     const rendering = await db.rendering.create({
-      data: { taskId: task.id, format, body, wordCount: body.split(/\s+/).length },
+      data: { taskId: task.id, format, lang, body, wordCount: body.split(/\s+/).length },
     });
     res.status(201).json({ ...rendering, cached: false });
   })

@@ -1,4 +1,6 @@
 import { api } from "./api";
+import { currentLang, translate } from "./i18n";
+import type { Lang } from "./i18n";
 import type { Student } from "./types";
 
 /**
@@ -26,9 +28,9 @@ const FLAG = "ritmo.guest";
  * guesses about this person. They are editable from "How I work" the moment
  * anyone wants to, and the strip says so.
  */
-export const GUEST_DIRECTIVES = [
-  "Never tell me how many steps are left.",
-  "Give me one thing at a time, even if it is slower.",
+export const guestDirectives = (lang: Lang = currentLang()) => [
+  translate(lang, "rule.1"),
+  translate(lang, "rule.4"),
 ];
 
 const GUEST_INTERVENTIONS = ["shrink", "readAloud", "pause"];
@@ -40,14 +42,19 @@ const GUEST_INTERVENTIONS = ["shrink", "readAloud", "pause"];
  */
 export async function createGuest(name?: string): Promise<Student> {
   const alias = (name ?? "").trim().slice(0, 40);
+  const lang = currentLang();
 
   const student = await api.createStudent({
-    alias: alias || "Guest",
+    // The rules are written in the language the student chose them in, and
+    // they stay that way: they become the student's own sentences the moment
+    // the account exists, and rewriting somebody's words when they flip a
+    // toggle is not translation, it is losing their edits.
+    alias: alias || translate(lang, "guest.defaultAlias"),
     ageBand: "middle",
     identifiesAs: null,
     defaultFormat: "skeleton",
     interventionKeys: GUEST_INTERVENTIONS,
-    directives: GUEST_DIRECTIVES,
+    directives: guestDirectives(lang),
   });
   localStorage.setItem(FLAG, "1");
   return student;
@@ -66,12 +73,13 @@ export const clearGuestFlag = () => localStorage.removeItem(FLAG);
  */
 export function explainCreateFailure(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
+  const lang = currentLang();
 
   if (/datasource|DATABASE_URL|must start with the protocol/i.test(message)) {
-    return "This hosted copy has no database attached yet, so it cannot open an account for you. Nothing you did is wrong. Run Ritmo on your own machine and everything works — clone the repository, then `npm run setup && npm run dev`. No key needed.";
+    return translate(lang, "guest.noDatabase");
   }
   if (/failed to fetch|networkerror|load failed/i.test(message)) {
-    return "The app could not reach its own server. If you are running this locally, check that npm run dev is still going.";
+    return translate(lang, "guest.noServer");
   }
-  return message || "That did not go through.";
+  return message || translate(lang, "auth.err.generic");
 }

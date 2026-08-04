@@ -9,6 +9,8 @@ import { ReaderPane } from "../components/ReaderPane";
 import { InterventionSheet } from "../components/InterventionSheet";
 import { TaskIntake } from "../components/TaskIntake";
 import { useDocumentTitle } from "../lib/title";
+import { useT } from "../lib/i18n";
+import type { T } from "../lib/i18n";
 import type { FrictionReading, Format, MicroStep, Task } from "../lib/types";
 
 const FORMAT_ORDER: Format[] = ["skeleton", "dialogue", "map", "comic", "audio"];
@@ -16,6 +18,7 @@ const PAUSE_MS = 120000;
 
 export function Workspace() {
   const { student } = useStudent();
+  const t = useT();
   const [task, setTask] = useState<Task | null>(null);
   const [steps, setSteps] = useState<MicroStep[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -259,14 +262,11 @@ export function Workspace() {
     return (
       <div className="mx-auto max-w-reading px-6 py-16 sm:py-24 space-y-10">
         <header className="space-y-4 rise">
-          <p className="eyebrow">Nothing open</p>
+          <p className="eyebrow">{t("work.nothingOpen")}</p>
           <h1 className="font-display text-[2.5rem] leading-[1.1] tracking-tight">
-            What are you supposed to be doing?
+            {t("work.whatDoing")}
           </h1>
-          <p className="text-muted reading">
-            Paste it in as it was given to you. The first thing back will be one action small enough
-            to do without deciding anything.
-          </p>
+          <p className="text-muted reading">{t("work.pasteBlurb")}</p>
         </header>
         {error && <p className="text-sm text-muted">{error}</p>}
         <TaskIntake onSubmit={start} busy={busy} />
@@ -278,12 +278,12 @@ export function Workspace() {
     <div className="mx-auto max-w-page px-6 py-12 space-y-12">
       <header className="space-y-2 rise">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <p className="eyebrow">{task.subject ?? "Task"}</p>
+          <p className="eyebrow">{task.subject ?? t("work.task")}</p>
           {task.decomposition && (
             <>
               <span aria-hidden className="text-faint text-xs">·</span>
               <p className="font-mono text-[0.6875rem] text-faint">
-                about {task.decomposition.estimatedMinutes} min in total
+                {t("work.totalMinutes", { n: task.decomposition.estimatedMinutes })}
               </p>
             </>
           )}
@@ -294,7 +294,7 @@ export function Workspace() {
       </header>
 
       {pausedUntil ? (
-        <PauseCard until={pausedUntil} onReturn={() => setPausedUntil(null)} />
+        <PauseCard t={t} until={pausedUntil} onReturn={() => setPausedUntil(null)} />
       ) : (
         <StepLantern
           steps={steps}
@@ -329,14 +329,12 @@ export function Workspace() {
 
       <div className="border-t border-line pt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
         <button className="btn-quiet" onClick={() => closeSession("finished")}>
-          I am finished with this
+          {t("work.finished")}
         </button>
         <button className="btn-bare" onClick={() => closeSession("paused")}>
-          Put it away without finishing
+          {t("work.putAway")}
         </button>
-        <p className="ml-auto text-xs text-faint reading max-w-xs">
-          Putting it away is not the same as failing it. Either button keeps what you did.
-        </p>
+        <p className="ml-auto text-xs text-faint reading max-w-xs">{t("work.eitherKeeps")}</p>
       </div>
 
       {friction && (
@@ -354,7 +352,9 @@ export function Workspace() {
  * A break is a step, not an absence. It says how long is left and offers the
  * way back, so coming back is not another decision to make.
  */
-function PauseCard({ until, onReturn }: { until: number; onReturn: () => void }) {
+function PauseCard({
+  t, until, onReturn,
+}: { t: T; until: number; onReturn: () => void }) {
   const [left, setLeft] = useState(() => Math.max(0, until - Date.now()));
 
   useEffect(() => {
@@ -363,17 +363,17 @@ function PauseCard({ until, onReturn }: { until: number; onReturn: () => void })
   }, [until]);
 
   const seconds = Math.ceil(left / 1000);
+  const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
   return (
     <div className="card p-6 sm:p-7 space-y-4">
-      <p className="eyebrow">Away from it</p>
-      <p className="font-display text-[1.6rem] leading-[1.35]">
-        {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")} left.
-      </p>
-      <p className="text-sm text-muted reading">
-        Nothing is being measured while this is up. The step is where you left it.
-      </p>
+      <p className="eyebrow">{t("pause.legend")}</p>
+      {/* The clock is inside the sentence rather than glued to a suffix: in
+          Spanish the number lands after the verb, not before a word. */}
+      <p className="font-display text-[1.6rem] leading-[1.35]">{t("pause.left", { time: clock })}</p>
+      <p className="text-sm text-muted reading">{t("pause.body")}</p>
       <button className="btn-quiet" onClick={onReturn}>
-        Back to it now
+        {t("pause.back")}
       </button>
     </div>
   );

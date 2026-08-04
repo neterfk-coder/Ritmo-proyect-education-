@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isSpeechAvailable, speak } from "../lib/speech";
+import { useT } from "../lib/i18n";
 import type { SpeechHandle } from "../lib/speech";
 
 /**
@@ -18,6 +19,7 @@ export function ReaderPane({
   /** Increment to start reading aloud from outside — the "read it to me" option. */
   speakRequest?: number;
 }) {
+  const t = useT();
   const [spoken, setSpoken] = useState<number | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const handle = useRef<SpeechHandle | null>(null);
@@ -78,7 +80,7 @@ export function ReaderPane({
     <div className="space-y-4">
       {isSpeechAvailable() && (
         <button className="btn-quiet !py-1.5 !text-xs" onClick={toggleSpeech}>
-          {speaking ? "Stop reading" : "Read it to me"}
+          {speaking ? t("reader.stop") : t("reader.read")}
         </button>
       )}
 

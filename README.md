@@ -102,6 +102,36 @@ a homework app and a self-advocacy tool.
 
 ---
 
+## English and Spanish
+
+The `EN / ES` pair in the header switches the whole product, and the choice is
+remembered in the browser. It defaults to the browser's own language, so a
+Spanish-speaking student never has to find a control written in English first.
+It sits in the open rather than inside the Reading panel for the same reason: a
+setting labelled in a language you cannot read is a setting you cannot find.
+
+What actually changes, beyond the buttons:
+
+- the steps an assignment is cut into, and the definition of done
+- the guide's answers — all 29 topics, matched by a Spanish stemmer and stop
+  list rather than a translated English one
+- the observations on the profile, and the one-page handover for a teacher,
+  including its date format
+- which voice reads text aloud, and which language dictation listens for
+
+What deliberately does **not** change: the sentences the student wrote
+themselves. Their rules for the model are quoted, never rewritten — translating
+somebody's own words when they flip a toggle is not translation, it is losing
+their edits. A task also stays in the language it was opened in, because its
+steps carry which ones are finished.
+
+The browser sends `x-ritmo-lang` on every request; `server/src/lib/lang.js`
+reads it. Both languages of a string live on adjacent lines in
+`web/src/lib/strings.ts`, so a change to one that never reached the other shows
+up in the diff.
+
+---
+
 ## What is honest about the state of this
 
 - The friction model is weighted heuristics with a per-student threshold that

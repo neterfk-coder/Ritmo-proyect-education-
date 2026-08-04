@@ -1,5 +1,6 @@
 import { env } from "../env.js";
-import { CAPABILITY_SUMMARY, FALLBACK, findTopic } from "./guide.js";
+import { DEFAULT_LANG } from "../lib/lang.js";
+import { CAPABILITY_SUMMARY, answerFor, fallbackFor, findTopic } from "./guide.js";
 
 /**
  * The companion's answer engine.
@@ -28,8 +29,9 @@ requires zero decisions. The same material can be re-rendered as skeleton,
 dialogue, map, six panels, or a read-aloud script. When interaction signals
 suggest the student is stuck, a panel offers options they chose during setup.
 The student writes sentences that become the model's system prompt, and can
-export a one-page profile for a teacher. Nothing uses a camera or a keystroke
-log; it runs offline with no API key.
+export a one-page profile for a teacher. The whole interface is available in
+English and Spanish, switched by the EN / ES pair in the header. Nothing uses a
+camera or a keystroke log; it runs offline with no API key.
 
 Topics you cover:
 ${CAPABILITY_SUMMARY}
@@ -41,31 +43,54 @@ marks. Never invent a feature that is not listed above; if you do not know,
 say so and point at the nearest thing that exists. Do not do the student's
 homework — you explain the tool, not the subject.`;
 
-export async function answerQuestion({ question, directives = [] }) {
+/**
+ * Answer in the language the interface is in, not the language of the question.
+ *
+ * These two come apart more often than they look: a student reading the Spanish
+ * interface will paste an English button label into the box, and a question
+ * that is half one language and half the other is normal in a bilingual school.
+ * The interface language is the one the student chose, so it wins.
+ */
+const LANGUAGE_RULE = {
+  en: "Answer in English.",
+  es: `Answer in Spanish (español), whatever language the question arrives in —
+the student has set the interface to Spanish and that is the choice that counts.
+Address them as tú, never usted. No exclamation marks, which means no ¡ either.
+Ritmo's own screens read Trabajo, Cómo trabajo, Mis datos, Lectura, "Puedes
+parar cuando", "Haz solo esto", "Muy grande", "Apárcalo": name the button as it
+appears on their screen, not as a translation of the English one.`,
+};
+
+export async function answerQuestion({ question, directives = [], lang = DEFAULT_LANG }) {
   const provider = env.companionProvider;
 
   if (provider !== "offline") {
     try {
-      const text = await callProvider(provider, question, directives);
+      const text = await callProvider(provider, question, directives, lang);
       if (text) return { text, source: provider };
     } catch (err) {
       console.warn(`companion fell back to the offline guide: ${err.message}`);
     }
   }
 
-  const topic = findTopic(question);
-  return { text: topic ? topic.answer : FALLBACK, source: "offline", topic: topic?.id ?? null };
+  const topic = findTopic(question, lang);
+  return {
+    text: topic ? answerFor(topic, lang) : fallbackFor(lang),
+    source: "offline",
+    topic: topic?.id ?? null,
+  };
 }
 
-function callProvider(provider, question, directives) {
+function callProvider(provider, question, directives, lang) {
   // The student's own rules apply here too. A student who wrote "short
   // sentences, I lose long ones halfway through" meant it for every sentence
   // this software produces, not only the ones about their homework.
+  const base = `${SYSTEM}\n\n${LANGUAGE_RULE[lang] ?? LANGUAGE_RULE.en}`;
   const system = directives.length
-    ? `${SYSTEM}\n\nThis student wrote these rules for you. They override the above:\n${directives
+    ? `${base}\n\nThis student wrote these rules for you. They override the above:\n${directives
         .map((d) => `- ${d}`)
         .join("\n")}`
-    : SYSTEM;
+    : base;
 
   return provider === "groq"
     ? callGroq(system, question)

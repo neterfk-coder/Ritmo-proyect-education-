@@ -89,6 +89,9 @@ export interface FrictionReading {
   score: number;
   threshold: number;
   offer: boolean;
+  /** The English sentence for the top signal. Kept as the fallback wording. */
   reading: string;
+  /** The top signal's key, so the sheet can word it in the reader's language. */
+  signal?: string;
   options: { key: string; label: string }[];
 }

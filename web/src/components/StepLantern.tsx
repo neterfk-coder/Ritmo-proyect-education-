@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useT } from "../lib/i18n";
+import type { T } from "../lib/i18n";
 import type { MicroStep } from "../lib/types";
 
 /**
@@ -28,6 +30,7 @@ export function StepLantern({
   onShrink: (id: string) => void;
   busy: boolean;
 }) {
+  const t = useT();
   const [peeking, setPeeking] = useState(false);
   const active = steps.find((s) => s.status === "active");
   const done = steps.filter((s) => s.status === "done" || s.status === "skipped");
@@ -36,18 +39,18 @@ export function StepLantern({
   if (!active) {
     return (
       <section className="panel p-8 sm:p-10 text-center space-y-4 rise">
-        <span className="panel-legend">Nothing left on the list</span>
-        <Marks done={done.length} total={showCount ? steps.length : null} />
-        <p className="font-display text-2xl leading-snug">That is everything on the list.</p>
+        <span className="panel-legend">{t("lantern.emptyLegend")}</span>
+        <Marks t={t} done={done.length} total={showCount ? steps.length : null} />
+        <p className="font-display text-2xl leading-snug">{t("lantern.emptyTitle")}</p>
         <p className="text-sm text-muted reading max-w-reading mx-auto">
-          Read it once from the top. If it matches the line above, you are finished.
+          {t("lantern.emptyBody")}
         </p>
       </section>
     );
   }
 
   return (
-    <section aria-label="The step you are on" className="space-y-5">
+    <section aria-label={t("lantern.aria")} className="space-y-5">
       {done.length > 0 && (
         <ol className="space-y-1.5">
           {done.map((step) => (
@@ -75,10 +78,10 @@ export function StepLantern({
         style={{ background: "rgb(var(--c-lit) / 0.045)" }}
       >
         <span className="panel-legend" style={{ color: "rgb(var(--c-lit))" }}>
-          Do only this
+          {t("lantern.doOnly")}
         </span>
         <span className="panel-meta">
-          about {Math.round(active.estimatedSeconds / 60) || 1} min
+          {t("lantern.about", { n: Math.round(active.estimatedSeconds / 60) || 1 })}
         </span>
 
         <p className="font-display text-[1.7rem] sm:text-[1.9rem] leading-[1.3] reading pt-1">
@@ -87,16 +90,16 @@ export function StepLantern({
 
         <div className="flex flex-wrap items-center gap-2">
           <button className="btn-primary" onClick={() => onDone(active.id)} disabled={busy}>
-            Done — next
+            {t("lantern.done")}
           </button>
           <button className="btn-quiet" onClick={() => onShrink(active.id)} disabled={busy}>
-            Too big
+            {t("lantern.tooBig")}
           </button>
           <button className="btn-quiet" onClick={() => onSkip(active.id)} disabled={busy}>
-            Park it
+            {t("lantern.park")}
           </button>
           <div className="ml-auto pl-2">
-            <Marks done={done.length} total={showCount ? steps.length : null} />
+            <Marks t={t} done={done.length} total={showCount ? steps.length : null} />
           </div>
         </div>
       </div>
@@ -104,7 +107,7 @@ export function StepLantern({
       {ahead.length > 0 && (
         <div>
           <button className="btn-bare" onClick={() => setPeeking((v) => !v)}>
-            {peeking ? "Hide what is coming" : "Show what is coming"}
+            {peeking ? t("lantern.hideAhead") : t("lantern.showAhead")}
           </button>
           {peeking && (
             <ol className="mt-3 space-y-1.5 stagger">
@@ -129,14 +132,16 @@ export function StepLantern({
  * for a reason: seeing it made testers stop before starting. A student who has
  * asked for the count gets the remainder drawn hollow.
  */
-function Marks({ done, total }: { done: number; total: number | null }) {
+function Marks({ t, done, total }: { t: T; done: number; total: number | null }) {
   if (done === 0 && !total) return null;
   const ahead = total ? Math.max(0, total - done) : 0;
 
   return (
     <p
       className="flex items-center gap-1.5"
-      aria-label={total ? `${done} of ${total} steps behind you` : `${done} steps behind you`}
+      aria-label={
+        total ? t("lantern.marksOf", { done, total }) : t("lantern.marks", { done })
+      }
     >
       {Array.from({ length: done }, (_, i) => (
         <span

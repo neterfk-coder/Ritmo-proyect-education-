@@ -1,5 +1,6 @@
 import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
+import { useT } from "../lib/i18n";
 
 /**
  * What a student meets when the interface itself breaks.
@@ -31,50 +32,52 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
   render() {
     const { error } = this.state;
     if (!error) return this.props.children;
-
-    return (
-      <div className="min-h-screen grid place-items-center px-6 py-16">
-        <div className="w-full max-w-[26rem] panel p-6 sm:p-8 space-y-5">
-          <span className="panel-legend">Something broke</span>
-
-          <div className="space-y-2 pt-1">
-            <h1 className="font-display text-[1.6rem] leading-[1.25] tracking-tight">
-              That was us, not you.
-            </h1>
-            <p className="text-sm text-muted reading">
-              Part of the interface stopped working. Nothing you had already finished is lost — the
-              steps you completed and everything the sessions recorded are saved, not held on this
-              screen.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button className="btn-primary" onClick={() => window.location.reload()}>
-              Reload the page
-            </button>
-            <button
-              className="btn-quiet"
-              onClick={() => {
-                window.location.href = "/work";
-              }}
-            >
-              Back to my work
-            </button>
-          </div>
-
-          <details className="border-t border-line pt-4">
-            <summary className="btn-bare cursor-pointer list-none">
-              What went wrong, technically
-            </summary>
-            <pre className="mt-3 text-xs text-faint font-mono whitespace-pre-wrap break-words">
-              {error.message}
-            </pre>
-            <p className="text-xs text-faint reading pt-2">
-              If this keeps happening, the full trace is in the browser console.
-            </p>
-          </details>
-        </div>
-      </div>
-    );
+    return <CrashScreen error={error} />;
   }
+}
+
+/**
+ * Split out as a function component so it can reach the language context — a
+ * class cannot call a hook, and this is the one screen most in need of being
+ * in a language the reader actually has.
+ */
+function CrashScreen({ error }: { error: Error }) {
+  const t = useT();
+
+  return (
+    <div className="min-h-screen grid place-items-center px-6 py-16">
+      <div className="w-full max-w-[26rem] panel p-6 sm:p-8 space-y-5">
+        <span className="panel-legend">{t("crash.legend")}</span>
+
+        <div className="space-y-2 pt-1">
+          <h1 className="font-display text-[1.6rem] leading-[1.25] tracking-tight">
+            {t("crash.title")}
+          </h1>
+          <p className="text-sm text-muted reading">{t("crash.body")}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button className="btn-primary" onClick={() => window.location.reload()}>
+            {t("crash.reload")}
+          </button>
+          <button
+            className="btn-quiet"
+            onClick={() => {
+              window.location.href = "/work";
+            }}
+          >
+            {t("crash.back")}
+          </button>
+        </div>
+
+        <details className="border-t border-line pt-4">
+          <summary className="btn-bare cursor-pointer list-none">{t("crash.details")}</summary>
+          <pre className="mt-3 text-xs text-faint font-mono whitespace-pre-wrap break-words">
+            {error.message}
+          </pre>
+          <p className="text-xs text-faint reading pt-2">{t("crash.console")}</p>
+        </details>
+      </div>
+    </div>
+  );
 }

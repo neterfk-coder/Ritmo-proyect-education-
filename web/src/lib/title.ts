@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useT } from "./i18n";
 
 /**
  * The tab's name, per page.
@@ -9,10 +10,13 @@ import { useEffect } from "react";
  * it survives a narrow tab.
  */
 export function useDocumentTitle(title?: string | null) {
+  const t = useT();
+  const fallback = t("app.tagline");
+
   useEffect(() => {
-    document.title = title ? `${title} — Ritmo` : "Ritmo — one step, lit";
+    document.title = title ? `${title} — Ritmo` : fallback;
     return () => {
-      document.title = "Ritmo — one step, lit";
+      document.title = fallback;
     };
-  }, [title]);
+  }, [title, fallback]);
 }

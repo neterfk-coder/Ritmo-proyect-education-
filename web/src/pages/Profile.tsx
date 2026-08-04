@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useStudent } from "../state/StudentContext";
 import { useDocumentTitle } from "../lib/title";
+import { useT } from "../lib/i18n";
+import type { T } from "../lib/i18n";
+import { formatName } from "../lib/labels";
 import type { Insight, LearningProfile } from "../lib/types";
 
 /**
@@ -14,6 +17,7 @@ import type { Insight, LearningProfile } from "../lib/types";
  */
 export function Profile() {
   const { student } = useStudent();
+  const t = useT();
   const [profile, setProfile] = useState<LearningProfile | null>(null);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [stats, setStats] = useState({ sessions: 0, finished: 0 });
@@ -22,7 +26,7 @@ export function Profile() {
   const [exported, setExported] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  useDocumentTitle("How I work");
+  useDocumentTitle(t("profile.title"));
 
   useEffect(() => {
     if (!student) return;
@@ -53,22 +57,18 @@ export function Profile() {
       */}
       <header className={`max-w-reading space-y-4 ${exported ? "no-print" : ""}`}>
         <p className="eyebrow">
-          {stats.sessions} sessions recorded · {stats.finished} finished
+          {t("profile.sessions", { n: stats.sessions, f: stats.finished })}
         </p>
-        <h1 className="font-display text-[2.5rem] leading-[1.1] tracking-tight">How I work</h1>
-        <p className="text-muted reading">
-          Everything on this page came from your own sessions. Nothing here was assumed about you
-          before you started.
-        </p>
+        <h1 className="font-display text-[2.5rem] leading-[1.1] tracking-tight">
+          {t("profile.title")}
+        </h1>
+        <p className="text-muted reading">{t("profile.blurb")}</p>
       </header>
 
       <section className={`space-y-6 ${exported ? "no-print" : ""}`}>
-        <h2 className="eyebrow">What the sessions show</h2>
+        <h2 className="eyebrow">{t("profile.whatShow")}</h2>
         {insights.length === 0 ? (
-          <p className="text-muted reading max-w-reading">
-            Not enough yet. Finish two or three tasks and observations will appear here, each with
-            the evidence attached.
-          </p>
+          <p className="text-muted reading max-w-reading">{t("profile.notEnough")}</p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 stagger">
             {insights.map((insight) => (
@@ -86,31 +86,25 @@ export function Profile() {
                       setInsights((prev) => prev.filter((i) => i.id !== insight.id));
                     }}
                   >
-                    Not true
+                    {t("profile.notTrue")}
                   </button>
                 </div>
-                <Meter value={insight.confidence} />
+                <Meter t={t} value={insight.confidence} />
               </li>
             ))}
           </ul>
         )}
         {insights.length > 0 && (
-          <p className="text-xs text-faint max-w-reading reading">
-            The bar is how confident the calculation is, not how true it is. If an observation is
-            wrong, mark it. Dismissed observations are never generated again.
-          </p>
+          <p className="text-xs text-faint max-w-reading reading">{t("profile.barNote")}</p>
         )}
       </section>
 
       <section className={`space-y-5 ${exported ? "no-print" : ""}`}>
         <div className="flex items-baseline gap-4 flex-wrap">
-          <h2 className="eyebrow">The instructions the model gets</h2>
-          {saved && <span className="text-xs text-pine">saved</span>}
+          <h2 className="eyebrow">{t("profile.instructions")}</h2>
+          {saved && <span className="text-xs text-pine">{t("profile.saved")}</span>}
         </div>
-        <p className="text-muted reading max-w-reading text-sm">
-          These sentences are placed above everything we wrote, every time the model runs. This is
-          the whole prompt as far as your preferences go — there is no second, hidden version.
-        </p>
+        <p className="text-muted reading max-w-reading text-sm">{t("profile.instructionsNote")}</p>
         <ul className="space-y-2 max-w-reading">
           {directives.map((rule, i) => (
             <li key={i} className="flex items-start gap-3 group">
@@ -122,7 +116,7 @@ export function Profile() {
                 className="btn-bare !text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                 onClick={() => saveDirectives(directives.filter((_, j) => j !== i))}
               >
-                remove
+                {t("profile.remove")}
               </button>
             </li>
           ))}
@@ -132,7 +126,7 @@ export function Profile() {
             className="field"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Add a rule"
+            placeholder={t("profile.addRule")}
             onKeyDown={(e) => {
               if (e.key === "Enter" && draft.trim()) {
                 saveDirectives([...directives, draft.trim()]);
@@ -148,7 +142,7 @@ export function Profile() {
               setDraft("");
             }}
           >
-            Add
+            {t("profile.add")}
           </button>
         </div>
       </section>
@@ -156,61 +150,63 @@ export function Profile() {
       {profile && (
         <section className={`space-y-5 ${exported ? "no-print" : ""}`}>
           <div className="flex items-baseline gap-4 flex-wrap">
-            <h2 className="eyebrow">Measured</h2>
+            <h2 className="eyebrow">{t("profile.measured")}</h2>
             <span className="font-mono text-[0.6875rem] text-faint">
-              from {profile.sessionsAnalysed} {profile.sessionsAnalysed === 1 ? "session" : "sessions"}
+              {profile.sessionsAnalysed === 1
+                ? t("profile.fromSession", { n: profile.sessionsAnalysed })
+                : t("profile.fromSessions", { n: profile.sessionsAnalysed })}
             </span>
           </div>
           <dl className="grid gap-4 sm:grid-cols-3 stagger">
             <Stat
-              label="Focus block"
+              label={t("profile.focusBlock")}
               value={profile.bestBlockMinutes ? `${profile.bestBlockMinutes}` : "—"}
-              unit={profile.bestBlockMinutes ? "min" : undefined}
-              note="Before friction starts to rise"
+              unit={profile.bestBlockMinutes ? t("profile.unit.min") : undefined}
+              note={t("profile.focusBlockNote")}
             />
             <Stat
-              label="Time to start"
+              label={t("profile.timeToStart")}
               value={
                 profile.medianFirstActionMs
                   ? `${Math.round(profile.medianFirstActionMs / 1000)}`
                   : "—"
               }
-              unit={profile.medianFirstActionMs ? "s" : undefined}
-              note="From opening a task to first action"
+              unit={profile.medianFirstActionMs ? t("profile.unit.sec") : undefined}
+              note={t("profile.timeToStartNote")}
             />
             <Stat
-              label="Reading rate"
+              label={t("profile.readingRate")}
               value={profile.readingRateWpm ? `${Math.round(profile.readingRateWpm)}` : "—"}
-              unit={profile.readingRateWpm ? "wpm" : undefined}
+              unit={profile.readingRateWpm ? t("profile.unit.wpm") : undefined}
               note={
                 profile.fastestFormat
-                  ? `Fastest in ${profile.fastestFormat} form`
-                  : "Median across every format"
+                  ? t("profile.fastestIn", { format: formatName(t, profile.fastestFormat) })
+                  : t("profile.medianAcross")
               }
             />
           </dl>
-          <p className="text-xs text-faint reading max-w-reading">
-            A dash means there is not enough recorded to say yet. We would rather show nothing than
-            show a default and call it a measurement.
-          </p>
+          <p className="text-xs text-faint reading max-w-reading">{t("profile.dashNote")}</p>
         </section>
       )}
 
       <section className="space-y-5 border-t border-line pt-12 print:border-0 print:pt-0">
         <div className={exported ? "no-print" : ""}>
-          <h2 className="font-display text-2xl">Give it to a teacher</h2>
-          <p className="text-muted reading max-w-reading pt-3">
-            One page, in your words, with the evidence attached. This is the only way anything here
-            leaves your account, and it only happens when you press this.
-          </p>
+          <h2 className="font-display text-2xl">{t("profile.giveTeacher")}</h2>
+          <p className="text-muted reading max-w-reading pt-3">{t("profile.givePage")}</p>
           <div className="flex flex-wrap gap-2 pt-5">
-            {(["teacher", "family", "self"] as const).map((audience) => (
+            {(
+              [
+                ["teacher", "profile.forTeacher"],
+                ["family", "profile.forFamily"],
+                ["self", "profile.forSelf"],
+              ] as const
+            ).map(([audience, label]) => (
               <button
                 key={audience}
                 className="btn-quiet"
                 onClick={async () => setExported((await api.exportProfile(student.id, audience)).body)}
               >
-                For {audience === "self" ? "myself" : `my ${audience}`}
+                {t(label)}
               </button>
             ))}
           </div>
@@ -226,15 +222,12 @@ export function Profile() {
                 className="btn-quiet"
                 onClick={() => navigator.clipboard.writeText(exported)}
               >
-                Copy
+                {t("profile.copy")}
               </button>
               <button className="btn-quiet" onClick={() => window.print()}>
-                Print
+                {t("profile.print")}
               </button>
-              <p className="text-xs text-faint reading">
-                Printing gives you this page on its own — no menus, no colours, nothing but the
-                document.
-              </p>
+              <p className="text-xs text-faint reading">{t("profile.printNote")}</p>
             </div>
           </div>
         )}
@@ -258,12 +251,12 @@ function Stat({
   );
 }
 
-function Meter({ value }: { value: number }) {
+function Meter({ t, value }: { t: T; value: number }) {
   return (
     <div
       className="h-px bg-line"
       role="img"
-      aria-label={`confidence ${Math.round(value * 100)} percent`}
+      aria-label={t("profile.confidence", { n: Math.round(value * 100) })}
     >
       <div
         className="h-px bg-muted transition-[width] duration-700 ease-calm"

@@ -2,16 +2,32 @@ import type {
   FrictionReading, Format, Insight, LearningProfile, MicroStep, Rendering, Student, Task,
 } from "./types";
 
+import { currentLang, translate } from "./i18n";
+
 const BASE = "/api";
 
+/**
+ * Every request carries the language on screen.
+ *
+ * A custom header rather than `Accept-Language`, which browsers forbid `fetch`
+ * from setting. The server needs this because a good half of what a student
+ * reads is written there and not here: the steps a task is cut into, the
+ * guide's answers, the observations on the profile, and the page they hand to
+ * a teacher.
+ */
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  const lang = currentLang();
   const res = await fetch(BASE + path, {
-    headers: { "content-type": "application/json" },
     ...init,
+    headers: {
+      "content-type": "application/json",
+      "x-ritmo-lang": lang,
+      ...(init?.headers ?? {}),
+    },
   });
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error ?? "The server did not answer.");
+  if (!res.ok) throw new Error(body.error ?? translate(lang, "api.silent"));
   return body as T;
 }
 

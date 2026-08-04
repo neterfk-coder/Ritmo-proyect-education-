@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStudent } from "../state/StudentContext";
 import { useDocumentTitle } from "../lib/title";
+import { useT } from "../lib/i18n";
+import type { Key } from "../lib/i18n";
+
+const NOT_COLLECTED: Key[] = ["privacy.no1", "privacy.no2", "privacy.no3", "privacy.no4"];
 
 /**
  * A page that exists because of what this product could have been.
@@ -14,45 +18,38 @@ import { useDocumentTitle } from "../lib/title";
 export function Privacy() {
   const { student, erase, signOut, hosted } = useStudent();
   const navigate = useNavigate();
+  const t = useT();
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useDocumentTitle("My data");
+  useDocumentTitle(t("privacy.eyebrow"));
 
   if (!student) return null;
 
   return (
     <div className="mx-auto max-w-reading px-6 py-16 space-y-14">
       <header className="space-y-4">
-        <p className="eyebrow">My data</p>
+        <p className="eyebrow">{t("privacy.eyebrow")}</p>
         <h1 className="font-display text-[2.5rem] leading-[1.1] tracking-tight">
-          What this knows, and what it can never do.
+          {t("privacy.title")}
         </h1>
       </header>
 
       <section className="space-y-5">
-        <h2 className="eyebrow">What is not collected</h2>
+        <h2 className="eyebrow">{t("privacy.notCollected")}</h2>
         <ul className="space-y-3.5">
-          {[
-            "No camera. Focus is inferred from how you use the page, never from your face.",
-            "No microphone unless you press the dictation button, and the audio never leaves the device.",
-            "No keystroke log. Friction is five numbers between 0 and 1, computed in your browser and thrown away after scoring.",
-            "No teacher dashboard, no parent digest, no engagement score. There is no table in the database for a person who is not you.",
-          ].map((line) => (
+          {NOT_COLLECTED.map((line) => (
             <li key={line} className="flex gap-3.5 reading text-[0.9375rem]">
               <span aria-hidden className="text-faint font-mono text-xs pt-1.5">—</span>
-              <span>{line}</span>
+              <span>{t(line)}</span>
             </li>
           ))}
         </ul>
       </section>
 
       <section className="space-y-5">
-        <h2 className="eyebrow">What is stored</h2>
-        <p className="reading text-[0.9375rem] text-muted">
-          Your rules, your tasks, the steps you finished, and one row per friction moment holding a
-          score and a signal name.
-        </p>
+        <h2 className="eyebrow">{t("privacy.stored")}</h2>
+        <p className="reading text-[0.9375rem] text-muted">{t("privacy.storedBody")}</p>
         {/*
           The two sentences below are different promises, and which one is true
           depends on where this copy is running. The page asks the server and
@@ -61,31 +58,22 @@ export function Privacy() {
         */}
         {hosted ? (
           <div className="panel p-5 space-y-3">
-            <span className="panel-legend">You are on the hosted copy</span>
-            <p className="reading text-[0.9375rem] text-muted pt-1">
-              This one keeps your rows in a database on a server, not on your machine. Whoever
-              operates this site can reach that database. Everything above about cameras,
-              microphones and keystrokes still holds, and there is still no account for anyone but
-              you — but "it never leaves your device" is not a claim this copy can make.
-            </p>
+            <span className="panel-legend">{t("privacy.hostedLegend")}</span>
+            <p className="reading text-[0.9375rem] text-muted pt-1">{t("privacy.hostedBody")}</p>
             <p className="reading text-[0.9375rem] text-muted">
-              If you want the version where the data is a file you own, run it yourself. It takes
-              two commands and needs no key:{" "}
+              {t("privacy.hostedRun")}{" "}
               <code className="font-mono text-xs bg-raised border border-line rounded px-1.5 py-0.5">
                 npm run setup && npm run dev
               </code>
             </p>
           </div>
         ) : (
-          <p className="reading text-[0.9375rem] text-muted">
-            It sits in a SQLite file on the machine running this app, and you are running it
-            locally, so that machine is yours.
-          </p>
+          <p className="reading text-[0.9375rem] text-muted">{t("privacy.localBody")}</p>
         )}
       </section>
 
       <section className="space-y-4">
-        <h2 className="eyebrow">Your account id</h2>
+        <h2 className="eyebrow">{t("privacy.accountId")}</h2>
         <div className="flex flex-wrap gap-2 items-center">
           <code className="font-mono text-xs bg-raised border border-line rounded-card px-3 py-2 break-all">
             {student.id}
@@ -98,21 +86,15 @@ export function Privacy() {
               window.setTimeout(() => setCopied(false), 2000);
             }}
           >
-            {copied ? "Copied" : "Copy"}
+            {copied ? t("privacy.copied") : t("privacy.copy")}
           </button>
         </div>
-        <p className="text-xs text-faint reading">
-          Keep this to open the same account on another browser. There is no password because there
-          is no server holding accounts.
-        </p>
+        <p className="text-xs text-faint reading">{t("privacy.keepThis")}</p>
       </section>
 
       <section className="space-y-5 border-t border-line pt-10">
-        <h2 className="eyebrow">Erase everything</h2>
-        <p className="reading text-[0.9375rem] text-muted">
-          Deletes your rules, tasks, sessions, friction rows and observations. It is immediate and
-          there is no archived copy.
-        </p>
+        <h2 className="eyebrow">{t("privacy.erase")}</h2>
+        <p className="reading text-[0.9375rem] text-muted">{t("privacy.eraseBody")}</p>
         {confirming ? (
           <div className="flex flex-wrap gap-3">
             <button
@@ -122,19 +104,19 @@ export function Privacy() {
                 navigate("/");
               }}
             >
-              Yes, erase all of it
+              {t("privacy.eraseYes")}
             </button>
             <button className="btn-quiet" onClick={() => setConfirming(false)}>
-              Keep it
+              {t("privacy.eraseNo")}
             </button>
           </div>
         ) : (
           <div className="flex flex-wrap gap-3">
             <button className="btn-quiet" onClick={() => setConfirming(true)}>
-              Erase everything
+              {t("privacy.erase")}
             </button>
             <button className="btn-bare" onClick={() => { signOut(); navigate("/"); }}>
-              Just sign out on this browser
+              {t("privacy.signOut")}
             </button>
           </div>
         )}

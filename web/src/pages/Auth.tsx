@@ -1,58 +1,70 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Owl } from "../components/Owl";
+import { LangToggle } from "../components/LangToggle";
 import { useStudent } from "../state/StudentContext";
 import { createGuest, explainCreateFailure } from "../lib/guest";
 import { useDocumentTitle } from "../lib/title";
+import { useT } from "../lib/i18n";
+import type { Key, T } from "../lib/i18n";
 import {
   AUTH_IS_STUB, AuthError, auth, checkAlias, checkEmail, checkPassword, strengthOf,
 } from "../lib/auth";
+import type { Problem } from "../lib/auth";
 
 type Mode = "signin" | "register" | "forgot" | "reset";
 
 const DEPTH: Record<Mode, number> = { signin: 0, register: 1, forgot: 2, reset: 3 };
 
-const COPY: Record<Mode, { eyebrow: string; title: string; blurb: string; submit: string }> = {
+const COPY: Record<Mode, { eyebrow: Key; title: Key; blurb: Key; submit: Key }> = {
   signin: {
-    eyebrow: "Welcome back",
-    title: "Pick up where you left off.",
-    blurb: "Your rules, your tasks and everything the sessions have shown are waiting.",
-    submit: "Open my account",
+    eyebrow: "auth.signin.eyebrow",
+    title: "auth.signin.title",
+    blurb: "auth.signin.blurb",
+    submit: "auth.signin.submit",
   },
   register: {
-    eyebrow: "New here",
-    title: "Set up an account.",
-    blurb: "One name, one address, one password. Nothing else is asked for, and nothing else is stored.",
-    submit: "Create it",
+    eyebrow: "auth.register.eyebrow",
+    title: "auth.register.title",
+    blurb: "auth.register.blurb",
+    submit: "auth.register.submit",
   },
   forgot: {
-    eyebrow: "Locked out",
-    title: "Send me a way back in.",
-    blurb: "Put in the address you used. If there is an account on it, a link goes out that works once.",
-    submit: "Send the link",
+    eyebrow: "auth.forgot.eyebrow",
+    title: "auth.forgot.title",
+    blurb: "auth.forgot.blurb",
+    submit: "auth.forgot.submit",
   },
   reset: {
-    eyebrow: "Almost there",
-    title: "Choose a new password.",
-    blurb: "This link stops working the moment you use it.",
-    submit: "Save it and sign in",
+    eyebrow: "auth.reset.eyebrow",
+    title: "auth.reset.title",
+    blurb: "auth.reset.blurb",
+    submit: "auth.reset.submit",
   },
+};
+
+const TITLES: Record<Mode, Key> = {
+  signin: "auth.title.signin",
+  register: "auth.title.register",
+  forgot: "auth.title.forgot",
+  reset: "auth.title.reset",
 };
 
 export function Auth({ mode }: { mode: Mode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { setStudent } = useStudent();
+  const t = useT();
 
-  useDocumentTitle(
-    { signin: "Sign in", register: "Set up an account", forgot: "Get back in", reset: "New password" }[mode]
-  );
+  useDocumentTitle(t(TITLES[mode]));
 
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  // Problems are kept as keys and worded at the point of display, so switching
+  // language with an error already on screen translates the error too.
+  const [errors, setErrors] = useState<Record<string, Problem | null>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [guestBusy, setGuestBusy] = useState(false);
@@ -79,11 +91,11 @@ export function Auth({ mode }: { mode: Mode }) {
   const needsStrength = mode === "register" || mode === "reset";
 
   const validate = () => {
-    const next: Record<string, string | null> = {};
+    const next: Record<string, Problem | null> = {};
     if (mode === "register") next.alias = checkAlias(alias);
     if (mode !== "reset") next.email = checkEmail(email);
     if (mode !== "forgot") next.password = checkPassword(password);
-    if (needsStrength && confirm !== password) next.confirm = "These two do not match.";
+    if (needsStrength && confirm !== password) next.confirm = { key: "auth.err.mismatch" };
     setErrors(next);
     return Object.values(next).every((v) => !v);
   };
@@ -109,10 +121,12 @@ export function Auth({ mode }: { mode: Mode }) {
         setDone("reset");
       }
     } catch (err) {
-      if (err instanceof AuthError && err.field) {
-        setErrors((prev) => ({ ...prev, [err.field as string]: err.message }));
+      if (err instanceof AuthError && err.field && err.problem) {
+        setErrors((prev) => ({ ...prev, [err.field as string]: err.problem as Problem }));
+      } else if (err instanceof AuthError && err.problem) {
+        setFormError(t(err.problem.key, err.problem.vars));
       } else {
-        setFormError(err instanceof Error ? err.message : "That did not go through.");
+        setFormError(err instanceof Error ? err.message : t("auth.err.generic"));
       }
     } finally {
       setBusy(false);
@@ -148,13 +162,21 @@ export function Auth({ mode }: { mode: Mode }) {
           <Owl size={40} />
           <div>
             <p className="font-display text-2xl leading-none tracking-tight">Ritmo</p>
-            <p className="text-[0.6875rem] text-faint leading-tight pt-1">One step, lit</p>
+            <p className="text-[0.6875rem] text-faint leading-tight pt-1">{t("auth.tagline")}</p>
           </div>
+          {/*
+            The front door needs its own switch: there is no header out here,
+            and this is the first screen anybody sees. Landing on a sign-in box
+            in a language you do not read, with the control to change it three
+            screens deep, is where a bilingual product actually loses people.
+          */}
+          <LangToggle className="ml-auto" />
         </header>
 
         <div key={mode + (done ?? "") + (askingName ? "-name" : "")} className={askingName ? "auth-forward" : direction}>
           {askingName ? (
             <GuestName
+              t={t}
               value={guestName}
               onChange={setGuestName}
               busy={guestBusy}
@@ -167,6 +189,7 @@ export function Auth({ mode }: { mode: Mode }) {
             />
           ) : done ? (
             <Finished
+              t={t}
               state={done}
               email={email}
               onContinue={() => navigate("/setup")}
@@ -174,31 +197,33 @@ export function Auth({ mode }: { mode: Mode }) {
             />
           ) : (
             <form onSubmit={submit} noValidate className="panel p-6 sm:p-7 space-y-6">
-              <span className="panel-legend">{copy.eyebrow}</span>
+              <span className="panel-legend">{t(copy.eyebrow)}</span>
 
               <div className="space-y-2 pt-1">
                 <h1 className="font-display text-[1.6rem] leading-[1.25] tracking-tight">
-                  {copy.title}
+                  {t(copy.title)}
                 </h1>
-                <p className="text-sm text-muted reading">{copy.blurb}</p>
+                <p className="text-sm text-muted reading">{t(copy.blurb)}</p>
               </div>
 
               <div className="space-y-4">
                 {mode === "register" && (
                   <Field
-                    label="What should this call you?"
+                    t={t}
+                    label={t("auth.field.alias")}
                     value={alias}
                     onChange={setAlias}
                     error={errors.alias}
                     autoComplete="nickname"
-                    hint="Any name. It is only ever shown to you."
+                    hint={t("auth.field.aliasHint")}
                     onBlur={() => setErrors((p) => ({ ...p, alias: checkAlias(alias) }))}
                   />
                 )}
 
                 {mode !== "reset" && (
                   <Field
-                    label="Email"
+                    t={t}
+                    label={t("auth.field.email")}
                     type="email"
                     value={email}
                     onChange={setEmail}
@@ -210,7 +235,8 @@ export function Auth({ mode }: { mode: Mode }) {
 
                 {mode !== "forgot" && (
                   <Field
-                    label={mode === "signin" ? "Password" : "New password"}
+                    t={t}
+                    label={mode === "signin" ? t("auth.field.password") : t("auth.field.newPassword")}
                     type="password"
                     value={password}
                     onChange={setPassword}
@@ -219,11 +245,12 @@ export function Auth({ mode }: { mode: Mode }) {
                   />
                 )}
 
-                {needsStrength && password && <Meter strength={strength} />}
+                {needsStrength && password && <Meter t={t} strength={strength} />}
 
                 {needsStrength && (
                   <Field
-                    label="Type it once more"
+                    t={t}
+                    label={t("auth.field.confirm")}
                     type="password"
                     value={confirm}
                     onChange={setConfirm}
@@ -242,22 +269,22 @@ export function Auth({ mode }: { mode: Mode }) {
                 disabled={busy}
                 className={`btn-primary w-full relative overflow-hidden ${busy ? "sweep" : ""}`}
               >
-                {busy ? "Working…" : copy.submit}
+                {busy ? t("auth.working") : t(copy.submit)}
               </button>
 
               <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4">
                 {mode !== "signin" && (
                   <button type="button" className="btn-bare" onClick={() => navigate("/signin")}>
-                    I already have an account
+                    {t("auth.haveAccount")}
                   </button>
                 )}
                 {mode === "signin" && (
                   <>
                     <button type="button" className="btn-bare" onClick={() => navigate("/register")}>
-                      Set one up
+                      {t("auth.setOneUp")}
                     </button>
                     <button type="button" className="btn-bare" onClick={() => navigate("/forgot")}>
-                      I forgot my password
+                      {t("auth.forgotLink")}
                     </button>
                   </>
                 )}
@@ -279,14 +306,11 @@ export function Auth({ mode }: { mode: Mode }) {
                   disabled={busy}
                   className="btn-quiet w-full"
                 >
-                  Go straight in, no account
+                  {t("auth.guestButton")}
                 </button>
-                <p className="text-xs text-faint reading">
-                  Everything works: tasks, formats, the profile, the page for your teacher. It
-                  lives in this browser, and you can pick up an account later without losing it.
-                </p>
+                <p className="text-xs text-faint reading">{t("auth.guestBlurb")}</p>
                 <button type="button" className="btn-bare !text-xs" onClick={() => navigate("/setup")}>
-                  Or answer the setup questions first
+                  {t("auth.setupFirst")}
                 </button>
               </div>
             </form>
@@ -295,8 +319,7 @@ export function Auth({ mode }: { mode: Mode }) {
 
         {AUTH_IS_STUB && (
           <p className="text-xs text-faint reading border-l-2 border-line pl-3">
-            These screens are not connected to a database yet. Nothing you type here is saved
-            anywhere — not the address, and not the password. Use “Skip” to reach the working app.
+            {t("auth.stubNote")}
           </p>
         )}
       </div>
@@ -314,8 +337,9 @@ export function Auth({ mode }: { mode: Mode }) {
  * can be asked of somebody who pressed a button that promised no account.
  */
 function GuestName({
-  value, onChange, busy, error, onEnter, onBack,
+  t, value, onChange, busy, error, onEnter, onBack,
 }: {
+  t: T;
   value: string;
   onChange: (v: string) => void;
   busy: boolean;
@@ -336,20 +360,18 @@ function GuestName({
         if (!busy) onEnter();
       }}
     >
-      <span className="panel-legend">Almost in</span>
+      <span className="panel-legend">{t("auth.guest.legend")}</span>
 
       <div className="space-y-2 pt-1">
         <h1 className="font-display text-[1.6rem] leading-[1.25] tracking-tight">
-          What should this call you?
+          {t("auth.guest.title")}
         </h1>
-        <p className="text-sm text-muted reading">
-          Optional. It is only ever shown to you, and you can change it later.
-        </p>
+        <p className="text-sm text-muted reading">{t("auth.guest.blurb")}</p>
       </div>
 
       <div className="space-y-1.5">
         <label htmlFor={id} className="sr-only">
-          What should this call you
+          {t("auth.guest.title")}
         </label>
         <input
           id={id}
@@ -358,7 +380,7 @@ function GuestName({
           onChange={(e) => onChange(e.target.value)}
           maxLength={40}
           autoComplete="nickname"
-          placeholder="Leave it empty if you would rather not"
+          placeholder={t("auth.guest.placeholder")}
           className="field"
         />
       </div>
@@ -373,10 +395,14 @@ function GuestName({
           disabled={busy}
           className={`btn-primary w-full relative overflow-hidden ${busy ? "sweep" : ""}`}
         >
-          {busy ? "Opening…" : value.trim() ? `Go in as ${value.trim()}` : "Go in without a name"}
+          {busy
+            ? t("auth.guest.opening")
+            : value.trim()
+              ? t("auth.guest.enterAs", { name: value.trim() })
+              : t("auth.guest.enterPlain")}
         </button>
         <button type="button" className="btn-bare !text-xs" onClick={onBack} disabled={busy}>
-          Back
+          {t("auth.guest.back")}
         </button>
       </div>
     </form>
@@ -384,12 +410,13 @@ function GuestName({
 }
 
 function Field({
-  label, value, onChange, error, type = "text", autoComplete, hint, onBlur,
+  t, label, value, onChange, error, type = "text", autoComplete, hint, onBlur,
 }: {
+  t: T;
   label: string;
   value: string;
   onChange: (v: string) => void;
-  error?: string | null;
+  error?: Problem | null;
   type?: "text" | "email" | "password";
   autoComplete?: string;
   hint?: string;
@@ -412,7 +439,7 @@ function Field({
             onClick={() => setRevealed((v) => !v)}
             aria-pressed={revealed}
           >
-            {revealed ? "hide" : "show"}
+            {revealed ? t("auth.hide") : t("auth.show")}
           </button>
         )}
       </div>
@@ -431,7 +458,7 @@ function Field({
 
       {error ? (
         <p id={`${id}-error`} className="text-xs text-muted reading">
-          {error}
+          {t(error.key, error.vars)}
         </p>
       ) : hint ? (
         <p id={`${id}-hint`} className="text-xs text-faint reading">
@@ -446,7 +473,7 @@ function Field({
  * Four segments rather than a percentage. A number invites you to optimise it;
  * segments say "further along is better" and leave it there.
  */
-function Meter({ strength }: { strength: ReturnType<typeof strengthOf> }) {
+function Meter({ t, strength }: { t: T; strength: ReturnType<typeof strengthOf> }) {
   const width = `${(strength.score / 4) * 100}%`;
   const colour =
     strength.score <= 1 ? "rgb(var(--c-faint))"
@@ -459,16 +486,19 @@ function Meter({ strength }: { strength: ReturnType<typeof strengthOf> }) {
         <div className="meter-fill h-1 rounded-full" style={{ width, background: colour }} />
       </div>
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-xs text-muted">{strength.label}</p>
+        <p className="text-xs text-muted">{strength.label ? t(strength.label) : ""}</p>
       </div>
-      <p className="text-xs text-faint reading">{strength.hint}</p>
+      <p className="text-xs text-faint reading">
+        {strength.hint ? t(strength.hint.key, strength.hint.vars) : ""}
+      </p>
     </div>
   );
 }
 
 function Finished({
-  state, email, onContinue, onBackToSignIn,
+  t, state, email, onContinue, onBackToSignIn,
 }: {
+  t: T;
   state: "sent" | "in" | "reset";
   email: string;
   onContinue: () => void;
@@ -476,21 +506,21 @@ function Finished({
 }) {
   const copy = {
     sent: {
-      legend: "Sent",
-      title: "Check your email.",
-      body: `If there is an account on ${email || "that address"}, a link is on its way. It works once and then stops. We do not say whether the address is registered — that would tell anyone who asked.`,
+      legend: t("auth.done.sent.legend"),
+      title: t("auth.done.sent.title"),
+      body: t("auth.done.sent.body", { email: email || t("auth.done.sent.thatAddress") }),
       action: null,
     },
     in: {
-      legend: "Ready",
-      title: "That is the account part done.",
-      body: "The account layer is not wired to a server yet, so nothing was saved. The app itself works — carry on and set up how it should talk to you.",
-      action: "Set up how it talks to me",
+      legend: t("auth.done.in.legend"),
+      title: t("auth.done.in.title"),
+      body: t("auth.done.in.body"),
+      action: t("auth.done.in.action"),
     },
     reset: {
-      legend: "Changed",
-      title: "Your password is set.",
-      body: "The link you used has stopped working. Sign in with the new one.",
+      legend: t("auth.done.reset.legend"),
+      title: t("auth.done.reset.title"),
+      body: t("auth.done.reset.body"),
       action: null,
     },
   }[state];
@@ -524,7 +554,7 @@ function Finished({
           </button>
         ) : (
           <button className="btn-quiet" onClick={onBackToSignIn}>
-            Back to sign in
+            {t("auth.backToSignIn")}
           </button>
         )}
       </div>

@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useStudent } from "../state/StudentContext";
 import { FormatGlyph } from "../components/FormatGlyph";
+import { LangToggle } from "../components/LangToggle";
+import { useT } from "../lib/i18n";
+import type { Key } from "../lib/i18n";
 import type { Format } from "../lib/types";
 
 /**
@@ -15,41 +18,40 @@ import type { Format } from "../lib/types";
  * student would be the input.
  */
 
-const SUGGESTED_RULES = [
-  "Never tell me how many steps are left.",
-  "Do not encourage me. Just tell me the next thing.",
-  "Short sentences. I lose long ones halfway through.",
-  "Give me one thing at a time, even if it is slower.",
-  "If I ask what finished looks like, answer literally.",
-  "No metaphors. Say the actual thing.",
-  "Do not tell me something is easy.",
+const SUGGESTED_RULES: Key[] = [
+  "rule.1", "rule.2", "rule.3", "rule.4", "rule.5", "rule.6", "rule.7",
 ];
 
-const OPTIONS: { key: string; label: string }[] = [
-  { key: "shrink", label: "Make this step smaller" },
-  { key: "readAloud", label: "Read it to me" },
-  { key: "speakInstead", label: "Let me say it instead of typing" },
-  { key: "pause", label: "Two minutes away from this" },
-  { key: "reframe", label: "Show it a different way" },
-  { key: "skip", label: "Park this and come back" },
+const OPTIONS: { key: string; label: Key }[] = [
+  { key: "shrink", label: "iv.shrink" },
+  { key: "readAloud", label: "iv.readAloud" },
+  { key: "speakInstead", label: "iv.speakInstead" },
+  { key: "pause", label: "iv.pause" },
+  { key: "reframe", label: "iv.reframe" },
+  { key: "skip", label: "iv.skip" },
 ];
 
-const FORMATS: { key: Format; label: string }[] = [
-  { key: "skeleton", label: "A bare outline" },
-  { key: "dialogue", label: "Two people talking it through" },
-  { key: "map", label: "A map of where things sit" },
-  { key: "comic", label: "Six panels" },
-  { key: "audio", label: "Something to listen to" },
+const FORMATS: { key: Format; label: Key }[] = [
+  { key: "skeleton", label: "setup.fmt.skeleton" },
+  { key: "dialogue", label: "setup.fmt.dialogue" },
+  { key: "map", label: "setup.fmt.map" },
+  { key: "comic", label: "setup.fmt.comic" },
+  { key: "audio", label: "setup.fmt.audio" },
 ];
 
 export function Onboarding() {
   const navigate = useNavigate();
   const { setStudent, signIn } = useStudent();
+  const t = useT();
 
   const [alias, setAlias] = useState("");
   const [ageBand, setAgeBand] = useState<"elementary" | "middle" | "high">("middle");
   const [identifiesAs, setIdentifiesAs] = useState("");
-  const [rules, setRules] = useState<string[]>([SUGGESTED_RULES[0], SUGGESTED_RULES[1]]);
+  // Held as keys until they are written to the account. A student who switches
+  // language mid-setup should see the checked rules follow, and the sentence
+  // that reaches the model should be the one they could read when they chose it.
+  const [ruleKeys, setRuleKeys] = useState<Key[]>([SUGGESTED_RULES[0], SUGGESTED_RULES[1]]);
+  const [written, setWritten] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
   const [keys, setKeys] = useState<string[]>(["shrink", "readAloud", "pause"]);
   const [format, setFormat] = useState<Format>("skeleton");
@@ -57,15 +59,18 @@ export function Onboarding() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
+  const toggle = <V extends string>(list: V[], set: (v: V[]) => void, value: V) =>
     set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+
+  /** The suggested rules first, in the order they are listed, then any typed. */
+  const rules = [...ruleKeys.map((key) => t(key)), ...written];
 
   const create = async () => {
     setBusy(true);
     setError(null);
     try {
       const student = await api.createStudent({
-        alias: alias.trim() || "Me",
+        alias: alias.trim() || t("setup.defaultAlias"),
         ageBand,
         identifiesAs: identifiesAs.trim() || null,
         defaultFormat: format,
@@ -84,34 +89,39 @@ export function Onboarding() {
   return (
     <div className="mx-auto max-w-reading px-6 py-16 sm:py-24 space-y-14">
       <header className="space-y-5">
-        <p className="eyebrow">Setting up</p>
+        <div className="flex items-start justify-between gap-4">
+          <p className="eyebrow">{t("setup.eyebrow")}</p>
+          <LangToggle />
+        </div>
         <h1 className="font-display text-[2.5rem] leading-[1.1] tracking-tight">
-          Before anything else, tell the tool how to talk to you.
+          {t("setup.title")}
         </h1>
-        <p className="text-muted reading">
-          What you choose here is not a preferences panel. These sentences are handed to the model
-          as its instructions, ahead of everything we wrote. You can read them and change them at
-          any time.
-        </p>
+        <p className="text-muted reading">{t("setup.blurb")}</p>
       </header>
 
-      <Section n="01" title="What should this call you?">
+      <Section n="01" title={t("setup.q1")}>
         <input
           className="field max-w-xs"
           value={alias}
           onChange={(e) => setAlias(e.target.value)}
-          placeholder="Any name. It never leaves this device."
+          placeholder={t("setup.namePlaceholder")}
         />
         <div className="flex flex-wrap gap-2 pt-3">
-          {(["elementary", "middle", "high"] as const).map((band) => (
+          {(
+            [
+              ["elementary", "setup.band.elementary"],
+              ["middle", "setup.band.middle"],
+              ["high", "setup.band.high"],
+            ] as const
+          ).map(([band, label]) => (
             <Chip key={band} active={ageBand === band} onClick={() => setAgeBand(band)}>
-              {band === "elementary" ? "Primary" : band === "middle" ? "Middle" : "High school"}
+              {t(label)}
             </Chip>
           ))}
         </div>
       </Section>
 
-      <Section n="02" title="Your rules for the model">
+      <Section n="02" title={t("setup.q2")}>
         <div className="space-y-2">
           {SUGGESTED_RULES.map((rule) => (
             <label
@@ -120,11 +130,11 @@ export function Onboarding() {
             >
               <input
                 type="checkbox"
-                checked={rules.includes(rule)}
-                onChange={() => toggle(rules, setRules, rule)}
+                checked={ruleKeys.includes(rule)}
+                onChange={() => toggle(ruleKeys, setRuleKeys, rule)}
                 className="mt-1.5 accent-pine h-4 w-4 shrink-0"
               />
-              <span className="group-hover:text-ink transition-colors">{rule}</span>
+              <span className="group-hover:text-ink transition-colors">{t(rule)}</span>
             </label>
           ))}
         </div>
@@ -133,19 +143,21 @@ export function Onboarding() {
             className="field"
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
-            placeholder="Write your own rule"
+            placeholder={t("setup.ownRule")}
             onKeyDown={(e) => {
               if (e.key === "Enter" && custom.trim()) {
-                setRules([...rules, custom.trim()]);
+                setWritten([...written, custom.trim()]);
                 setCustom("");
               }
             }}
           />
           <button
             className="btn-quiet shrink-0"
-            onClick={() => { if (custom.trim()) { setRules([...rules, custom.trim()]); setCustom(""); } }}
+            onClick={() => {
+              if (custom.trim()) { setWritten([...written, custom.trim()]); setCustom(""); }
+            }}
           >
-            Add
+            {t("setup.add")}
           </button>
         </div>
 
@@ -156,12 +168,10 @@ export function Onboarding() {
           reading that claim and the student watching it be true.
         */}
         <div className="panel p-5 mt-6 space-y-3">
-          <span className="panel-legend">What the model will be told</span>
-          <span className="panel-meta">{rules.length} of yours</span>
+          <span className="panel-legend">{t("setup.willBeTold")}</span>
+          <span className="panel-meta">{t("setup.ofYours", { n: rules.length })}</span>
           {rules.length === 0 ? (
-            <p className="text-sm text-faint reading pt-1">
-              Nothing yet. With no rules it keeps everything short and literal.
-            </p>
+            <p className="text-sm text-faint reading pt-1">{t("setup.noRules")}</p>
           ) : (
             <ol className="space-y-1.5 pt-1">
               {rules.map((rule, i) => (
@@ -172,24 +182,26 @@ export function Onboarding() {
                   <span className="text-sm reading flex-1">{rule}</span>
                   <button
                     className="btn-bare !text-xs shrink-0"
-                    onClick={() => setRules(rules.filter((_, j) => j !== i))}
+                    onClick={() =>
+                      i < ruleKeys.length
+                        ? setRuleKeys(ruleKeys.filter((_, j) => j !== i))
+                        : setWritten(written.filter((_, j) => j !== i - ruleKeys.length))
+                    }
                   >
-                    remove
+                    {t("setup.remove")}
                   </button>
                 </li>
               ))}
             </ol>
           )}
           <p className="text-xs text-faint reading border-t border-line pt-3">
-            These sit above our instructions on every call. Where they disagree, yours wins.
+            {t("setup.yoursWins")}
           </p>
         </div>
       </Section>
 
-      <Section n="03" title="When you get stuck, what should appear?">
-        <p className="text-sm text-muted reading pb-1">
-          Choose now, while nothing is wrong. Deciding what helps is much harder in the moment.
-        </p>
+      <Section n="03" title={t("setup.q3")}>
+        <p className="text-sm text-muted reading pb-1">{t("setup.q3blurb")}</p>
         <div className="space-y-2">
           {OPTIONS.map((option) => (
             <label key={option.key} className="flex items-start gap-3 text-[0.9375rem] reading cursor-pointer">
@@ -199,13 +211,13 @@ export function Onboarding() {
                 onChange={() => toggle(keys, setKeys, option.key)}
                 className="mt-1.5 accent-pine h-4 w-4 shrink-0"
               />
-              {option.label}
+              {t(option.label)}
             </label>
           ))}
         </div>
       </Section>
 
-      <Section n="04" title="Where do you want things to start?">
+      <Section n="04" title={t("setup.q4")}>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {FORMATS.map((f) => {
             const active = format === f.key;
@@ -223,45 +235,39 @@ export function Onboarding() {
               >
                 <FormatGlyph format={f.key} />
                 <span className={`block text-sm ${active ? "text-surface" : "text-ink"}`}>
-                  {f.label}
+                  {t(f.label)}
                 </span>
               </button>
             );
           })}
         </div>
-        <p className="text-xs text-faint reading pt-3">
-          You can change this on any task, as many times as you want. Nothing is dropped between
-          shapes — if an idea is hard it stays hard, it just changes form.
-        </p>
+        <p className="text-xs text-faint reading pt-3">{t("setup.fmtNote")}</p>
       </Section>
 
-      <Section n="05" title="Anything you want it to know about you?">
+      <Section n="05" title={t("setup.q5")}>
         <input
           className="field"
           value={identifiesAs}
           onChange={(e) => setIdentifiesAs(e.target.value)}
-          placeholder="Optional. Free text. Nothing here is a diagnosis field."
+          placeholder={t("setup.q5placeholder")}
         />
-        <p className="text-xs text-faint pt-2 reading">
-          You can leave this empty and nothing about the tool changes. It is here because some
-          people want to say it, not because we need it.
-        </p>
+        <p className="text-xs text-faint pt-2 reading">{t("setup.q5note")}</p>
       </Section>
 
       {error && <p className="text-sm text-muted">{error}</p>}
 
       <div className="flex flex-wrap items-center gap-4 pt-2">
         <button className="btn-primary" onClick={create} disabled={busy}>
-          {busy ? "Setting up…" : "Start"}
+          {busy ? t("setup.starting") : t("setup.start")}
         </button>
         <details className="text-sm">
-          <summary className="btn-bare cursor-pointer list-none">I already have an account id</summary>
+          <summary className="btn-bare cursor-pointer list-none">{t("setup.haveId")}</summary>
           <div className="flex gap-2 pt-3">
             <input
               className="field"
               value={existingId}
               onChange={(e) => setExistingId(e.target.value)}
-              placeholder="Paste the id"
+              placeholder={t("setup.pasteId")}
             />
             <button
               className="btn-quiet shrink-0"
@@ -271,7 +277,7 @@ export function Onboarding() {
                   .catch((e) => setError(e.message))
               }
             >
-              Open
+              {t("setup.open")}
             </button>
           </div>
         </details>

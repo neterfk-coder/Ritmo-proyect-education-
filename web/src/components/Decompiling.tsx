@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useT } from "../lib/i18n";
+import type { Key } from "../lib/i18n";
 
 /**
  * What is on screen while the assignment is being worked out.
@@ -13,15 +15,10 @@ import { useEffect, useState } from "react";
  * how long a model will take, and inventing a bar that stalls at 90% teaches a
  * student not to believe the interface.
  */
-const STAGES = [
-  "Reading it the way it was given to you",
-  "Finding what the question actually asks you to produce",
-  "Working out how you would know you were finished",
-  "Cutting it into steps",
-  "Checking the first step needs no decision from you",
-];
+const STAGES: Key[] = ["decomp.1", "decomp.2", "decomp.3", "decomp.4", "decomp.5"];
 
 export function Decompiling() {
+  const t = useT();
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
@@ -34,7 +31,7 @@ export function Decompiling() {
 
   return (
     <div className="panel p-6 sm:p-8 space-y-5 rise" role="status" aria-live="polite">
-      <span className="panel-legend">Working</span>
+      <span className="panel-legend">{t("decomp.legend")}</span>
 
       <div className="flex items-center gap-1.5 pt-1" aria-hidden>
         {[0, 1, 2].map((i) => (
@@ -48,22 +45,19 @@ export function Decompiling() {
 
       {/* Keyed so each line arrives rather than replacing the last in place. */}
       <p key={stage} className="step-in font-display text-xl leading-snug reading">
-        {STAGES[stage]}
+        {t(STAGES[stage])}
       </p>
 
       <ol className="space-y-1.5">
         {STAGES.slice(0, stage).map((line) => (
           <li key={line} className="settle flex items-baseline gap-3 text-sm text-faint">
             <span aria-hidden className="font-mono text-xs">✓</span>
-            <span>{line}</span>
+            <span>{t(line)}</span>
           </li>
         ))}
       </ol>
 
-      <p className="text-xs text-faint reading pt-1">
-        No time estimate here on purpose. We do not know how long this takes, and a bar that
-        stops at nearly-full is worse than no bar.
-      </p>
+      <p className="text-xs text-faint reading pt-1">{t("decomp.note")}</p>
     </div>
   );
 }

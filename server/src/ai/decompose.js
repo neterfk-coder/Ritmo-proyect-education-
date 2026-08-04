@@ -10,20 +10,20 @@ import { env } from "../env.js";
  * Falls back to the mock engine on any failure. A student staring at a blank
  * page at 9pm should never see an error screen because a provider was down.
  */
-export async function decompose({ rawText, student, profile }) {
-  if (env.aiMode === "mock") return mockDecompose(rawText);
+export async function decompose({ rawText, student, profile, lang = "en" }) {
+  if (env.aiMode === "mock") return mockDecompose(rawText, lang);
 
   try {
     const text = await complete({
-      system: systemFor(student, profile),
+      system: systemFor(student, profile, lang),
       user: decomposePrompt(rawText),
     });
     const parsed = parseJson(text);
-    if (!parsed?.steps?.length) return mockDecompose(rawText);
+    if (!parsed?.steps?.length) return mockDecompose(rawText, lang);
     return { ...normalise(parsed), model: env.model };
   } catch (err) {
     console.warn("decompose fell back to mock:", err.message);
-    return mockDecompose(rawText);
+    return mockDecompose(rawText, lang);
   }
 }
 

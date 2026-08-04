@@ -1,8 +1,9 @@
 import { db, json } from "../db.js";
 import { tuneThreshold } from "./frictionEngine.js";
-import { mockInsights } from "../ai/mock.js";
+import { FORMAT_WORDS, mockInsights } from "../ai/mock.js";
 import { complete, parseJson } from "../ai/client.js";
 import { insightPrompt, systemFor } from "../ai/prompts.js";
+import { DEFAULT_LANG, LOCALE } from "../lib/lang.js";
 import { env } from "../env.js";
 
 /**
@@ -15,7 +16,7 @@ import { env } from "../env.js";
  * These statements are also literally the model's system prompt, which means
  * the student is not configuring a tool — they are writing its instructions.
  */
-export async function recomputeProfile(studentId) {
+export async function recomputeProfile(studentId, lang = DEFAULT_LANG) {
   const student = await db.student.findUniqueOrThrow({
     where: { id: studentId },
     include: { profile: true },
@@ -54,7 +55,7 @@ export async function recomputeProfile(studentId) {
     },
   });
 
-  await writeInsights(studentId, student, profile, summary);
+  await writeInsights(studentId, student, profile, summary, lang);
   return profile;
 }
 
@@ -107,13 +108,13 @@ function summarise(sessions) {
   };
 }
 
-async function writeInsights(studentId, student, profile, summary) {
-  let generated = mockInsights(summary);
+async function writeInsights(studentId, student, profile, summary, lang) {
+  let generated = mockInsights(summary, lang);
 
   if (env.aiMode === "live") {
     try {
       const text = await complete({
-        system: systemFor(student, { directives: json.read(profile.directives) }),
+        system: systemFor(student, { directives: json.read(profile.directives) }, lang),
         user: insightPrompt(summary),
         maxTokens: 700,
       });
@@ -124,14 +125,24 @@ async function writeInsights(studentId, student, profile, summary) {
     }
   }
 
+  /*
+    Blocked by kind rather than by exact sentence.
+
+    The page promises that a dismissed observation is never generated again,
+    and matching on the sentence quietly broke that promise twice: the numbers
+    inside a statement change as sessions accumulate, and now the same
+    observation exists in two languages. Either one produces a new string, and
+    a new string walked straight past the filter. The kind is what the student
+    was actually rejecting.
+  */
   const dismissed = await db.insight.findMany({
     where: { studentId, dismissed: true },
-    select: { statement: true },
+    select: { kind: true },
   });
-  const blocked = new Set(dismissed.map((d) => d.statement));
+  const blocked = new Set(dismissed.map((d) => d.kind));
 
   for (const insight of generated) {
-    if (blocked.has(insight.statement)) continue;
+    if (blocked.has(insight.kind)) continue;
     const exists = await db.insight.findFirst({
       where: { studentId, kind: insight.kind, dismissed: false },
     });
@@ -150,36 +161,84 @@ async function writeInsights(studentId, student, profile, summary) {
  * The one-page handover. Deliberately boring, deliberately short, deliberately
  * written in the student's voice rather than about them in the third person.
  */
-export function buildExport(student, profile, insights, audience = "teacher") {
+const EXPORT_COPY = {
+  en: {
+    title: (alias) => `How I work — ${alias}`,
+    prepared: (date) => `Prepared ${date}`,
+    forTeacher:
+      "I made this with a study tool that tracks how I work. It is my own data and I chose to share it.",
+    forOthers: "This is what I have worked out about how I study.",
+    whatHelps: "What helps",
+    blocks: (m) => `I work best in blocks of about ${m} minutes.`,
+    fastest: (f) => `I read fastest when material is in ${f} form.`,
+    whatINeed: "What I need at the start of a task",
+    defaultDirective: "Tell me what finished looks like before I start.",
+    basedOn: (n) => `Based on ${n} recorded study ${n === 1 ? "session" : "sessions"}.`,
+  },
+  es: {
+    title: (alias) => `Cómo trabajo — ${alias}`,
+    prepared: (date) => `Preparado el ${date}`,
+    forTeacher:
+      "Hice esto con una herramienta de estudio que registra cómo trabajo. Son mis propios datos y he decidido compartirlos.",
+    forOthers: "Esto es lo que he averiguado sobre cómo estudio.",
+    whatHelps: "Qué me ayuda",
+    blocks: (m) => `Trabajo mejor en bloques de unos ${m} minutos.`,
+    fastest: (f) => `Leo más rápido cuando el material está en forma de ${f}.`,
+    whatINeed: "Qué necesito al empezar una tarea",
+    defaultDirective: "Dime cómo es estar terminado antes de que empiece.",
+    basedOn: (n) => `A partir de ${n} ${n === 1 ? "sesión registrada" : "sesiones registradas"} de estudio.`,
+  },
+};
+
+/**
+ * The one-page handover. Deliberately boring, deliberately short, deliberately
+ * written in the student's voice rather than about them in the third person.
+ *
+ * The language matters more here than anywhere else in the product. This is the
+ * only thing Ritmo produces that a second person reads, and that person is
+ * standing in front of the student — a Spanish-speaking teacher handed an
+ * English page cannot act on it, which makes the whole self-advocacy argument
+ * collapse at the last step.
+ */
+export function buildExport(student, profile, insights, audience = "teacher", lang = DEFAULT_LANG) {
+  const copy = EXPORT_COPY[lang] ?? EXPORT_COPY[DEFAULT_LANG];
+  const names = FORMAT_WORDS[lang] ?? FORMAT_WORDS[DEFAULT_LANG];
   const lines = [];
-  lines.push(`How I work — ${student.alias}`);
-  lines.push(`Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`);
-  lines.push("");
+
+  lines.push(copy.title(student.alias));
   lines.push(
-    audience === "teacher"
-      ? "I made this with a study tool that tracks how I work. It is my own data and I chose to share it."
-      : "This is what I have worked out about how I study."
+    copy.prepared(
+      new Date().toLocaleDateString(LOCALE[lang] ?? LOCALE[DEFAULT_LANG], {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    )
   );
   lines.push("");
-  lines.push("What helps");
+  lines.push(audience === "teacher" ? copy.forTeacher : copy.forOthers);
+  lines.push("");
+  lines.push(copy.whatHelps);
   for (const insight of insights.filter((i) => !i.dismissed)) {
     lines.push(`  · ${insight.statement}`);
     lines.push(`    ${insight.evidence}`);
   }
   if (profile?.bestBlockMinutes) {
-    lines.push(`  · I work best in blocks of about ${profile.bestBlockMinutes} minutes.`);
+    lines.push(`  · ${copy.blocks(profile.bestBlockMinutes)}`);
   }
   if (profile?.fastestFormat) {
-    lines.push(`  · I read fastest when material is in ${profile.fastestFormat} form.`);
+    lines.push(`  · ${copy.fastest(names[profile.fastestFormat] ?? profile.fastestFormat)}`);
   }
   lines.push("");
-  lines.push("What I need at the start of a task");
+  lines.push(copy.whatINeed);
+  // The directives are the student's own sentences, in whichever language they
+  // wrote them. They are quoted, not translated.
   const directives = json.read(profile?.directives);
-  for (const d of directives.length ? directives : ["Tell me what finished looks like before I start."]) {
+  for (const d of directives.length ? directives : [copy.defaultDirective]) {
     lines.push(`  · ${d}`);
   }
   lines.push("");
-  lines.push(`Based on ${profile?.sessionsAnalysed ?? 0} recorded study sessions.`);
+  lines.push(copy.basedOn(profile?.sessionsAnalysed ?? 0));
   return lines.join("\n");
 }
 

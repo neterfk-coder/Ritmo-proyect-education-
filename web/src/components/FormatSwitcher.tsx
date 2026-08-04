@@ -1,12 +1,14 @@
 import { FormatGlyph } from "./FormatGlyph";
+import { useT } from "../lib/i18n";
+import type { Key } from "../lib/i18n";
 import type { Format } from "../lib/types";
 
-const FORMATS: { key: Format; label: string; blurb: string }[] = [
-  { key: "skeleton", label: "Skeleton", blurb: "Structure only" },
-  { key: "dialogue", label: "Dialogue", blurb: "Two people working it out" },
-  { key: "map", label: "Map", blurb: "Where things sit" },
-  { key: "comic", label: "Panels", blurb: "Six pictures" },
-  { key: "audio", label: "Read aloud", blurb: "Written for the ear" },
+const FORMATS: { key: Format; label: Key; blurb: Key }[] = [
+  { key: "skeleton", label: "fmt.skeleton", blurb: "fmt.skeleton.blurb" },
+  { key: "dialogue", label: "fmt.dialogue", blurb: "fmt.dialogue.blurb" },
+  { key: "map", label: "fmt.map", blurb: "fmt.map.blurb" },
+  { key: "comic", label: "fmt.comic", blurb: "fmt.comic.blurb" },
+  { key: "audio", label: "fmt.audio", blurb: "fmt.audio.blurb" },
 ];
 
 /**
@@ -26,9 +28,11 @@ export function FormatSwitcher({
   fastest?: Format | null;
   busy: boolean;
 }) {
+  const t = useT();
+
   return (
     <div className="space-y-3">
-      <p className="eyebrow">Same words, different shape</p>
+      <p className="eyebrow">{t("fmt.title")}</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 stagger">
         {FORMATS.map((f) => {
@@ -49,22 +53,22 @@ export function FormatSwitcher({
             >
               <FormatGlyph format={f.key} />
               <div className="space-y-0.5">
-                <p className={`text-sm ${active ? "text-surface" : "text-ink"}`}>{f.label}</p>
+                <p className={`text-sm ${active ? "text-surface" : "text-ink"}`}>{t(f.label)}</p>
                 <p
                   className={`text-[0.6875rem] leading-snug ${
                     active ? "text-surface/70" : "text-faint"
                   }`}
                 >
-                  {f.blurb}
+                  {t(f.blurb)}
                 </p>
               </div>
 
               {fastest === f.key && !active && (
                 <span
-                  title="You read fastest in this one"
+                  title={t("fmt.fastestTitle")}
                   className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-lit"
                 >
-                  <span className="sr-only">your fastest format</span>
+                  <span className="sr-only">{t("fmt.fastestSr")}</span>
                 </span>
               )}
             </button>
@@ -72,11 +76,7 @@ export function FormatSwitcher({
         })}
       </div>
 
-      {fastest && (
-        <p className="text-xs text-faint reading">
-          The dot marks the format you read fastest, measured from your own sessions.
-        </p>
-      )}
+      {fastest && <p className="text-xs text-faint reading">{t("fmt.dotNote")}</p>}
     </div>
   );
 }

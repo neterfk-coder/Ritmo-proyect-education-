@@ -24,10 +24,25 @@
  *   · Reset tokens: single use, short lived, compared in constant time.
  */
 
+import type { Key } from "./i18n";
+
 export interface Account {
   id: string;
   alias: string;
   email: string;
+}
+
+/**
+ * A problem, named rather than worded.
+ *
+ * The checks below return one of these instead of a sentence. This file has no
+ * React in it and no notion of which language is on screen, and a validator
+ * that hard-codes English is a validator that has to be rewritten to add a
+ * second one. The screen translates at the point of display.
+ */
+export interface Problem {
+  key: Key;
+  vars?: Record<string, string | number>;
 }
 
 export interface AuthService {
@@ -39,8 +54,11 @@ export interface AuthService {
 
 export class AuthError extends Error {
   field?: "email" | "password" | "alias" | "confirm";
-  constructor(message: string, field?: AuthError["field"]) {
-    super(message);
+  /** Set when the failure is one the dictionary has wording for. */
+  problem?: Problem;
+  constructor(problem: Problem, field?: AuthError["field"]) {
+    super(problem.key);
+    this.problem = problem;
     this.field = field;
   }
 }
@@ -52,26 +70,28 @@ export class AuthError extends Error {
 // caught by the mail never arriving.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-export function checkEmail(value: string): string | null {
+export function checkEmail(value: string): Problem | null {
   const email = value.trim();
-  if (!email) return "An address is needed to get back in.";
-  if (!EMAIL.test(email)) return "That does not look like an address.";
+  if (!email) return { key: "auth.err.emailEmpty" };
+  if (!EMAIL.test(email)) return { key: "auth.err.emailShape" };
   return null;
 }
 
-export function checkAlias(value: string): string | null {
+export function checkAlias(value: string): Problem | null {
   const alias = value.trim();
-  if (!alias) return "Any name will do. It is only shown to you.";
-  if (alias.length > 40) return "A little shorter.";
+  if (!alias) return { key: "auth.err.aliasEmpty" };
+  if (alias.length > 40) return { key: "auth.err.aliasLong" };
   return null;
 }
 
 export const MIN_PASSWORD = 10;
 
-export function checkPassword(value: string): string | null {
-  if (!value) return "A password is needed.";
-  if (value.length < MIN_PASSWORD) return `At least ${MIN_PASSWORD} characters.`;
-  if (COMMON.has(value.toLowerCase())) return "That one is guessed early. Try something else.";
+export function checkPassword(value: string): Problem | null {
+  if (!value) return { key: "auth.err.passwordEmpty" };
+  if (value.length < MIN_PASSWORD) {
+    return { key: "auth.err.passwordShort", vars: { n: MIN_PASSWORD } };
+  }
+  if (COMMON.has(value.toLowerCase())) return { key: "auth.err.passwordCommon" };
   return null;
 }
 
@@ -86,9 +106,18 @@ const COMMON = new Set([
 
 export interface Strength {
   score: 0 | 1 | 2 | 3 | 4;
-  label: string;
-  hint: string;
+  /** Empty until something has been typed. */
+  label: Key | null;
+  hint: Problem | null;
 }
+
+const STRENGTH_LABELS: Key[] = [
+  "auth.strength.0",
+  "auth.strength.1",
+  "auth.strength.2",
+  "auth.strength.3",
+  "auth.strength.4",
+];
 
 /**
  * A rough, honest strength estimate: length carries most of it, variety adds
@@ -96,7 +125,7 @@ export interface Strength {
  * is `checkPassword`.
  */
 export function strengthOf(value: string): Strength {
-  if (!value) return { score: 0, label: "", hint: "" };
+  if (!value) return { score: 0, label: null, hint: null };
 
   const classes =
     Number(/[a-z]/.test(value)) +
@@ -111,16 +140,19 @@ export function strengthOf(value: string): Strength {
   if (COMMON.has(value.toLowerCase())) points = 0;
 
   const score = Math.max(0, Math.min(4, points)) as Strength["score"];
+  const missing = MIN_PASSWORD - value.length;
 
   return {
     score,
-    label: ["Guessed at once", "Weak", "Passable", "Good", "Strong"][score],
+    label: STRENGTH_LABELS[score],
     hint:
       score >= 3
-        ? "Length is what makes this hard to break, and you have it."
-        : value.length < MIN_PASSWORD
-          ? `${MIN_PASSWORD - value.length} more character${MIN_PASSWORD - value.length === 1 ? "" : "s"}.`
-          : "Longer beats stranger. Three unrelated words is stronger than one word with symbols.",
+        ? { key: "auth.strength.hint.fine" }
+        : missing > 0
+          ? missing === 1
+            ? { key: "auth.strength.hint.oneMore" }
+            : { key: "auth.strength.hint.more", vars: { n: missing } }
+          : { key: "auth.strength.hint.longer" },
   };
 }
 
@@ -137,7 +169,7 @@ export const stubAuth: AuthService = {
     await pause(700);
     const bad = checkEmail(email);
     if (bad) throw new AuthError(bad, "email");
-    if (!password) throw new AuthError("A password is needed.", "password");
+    if (!password) throw new AuthError({ key: "auth.err.passwordEmpty" }, "password");
 
     // A real sign-in fails here for a wrong password. This one cannot know, so
     // it says so rather than pretending the credentials were checked.
@@ -166,7 +198,7 @@ export const stubAuth: AuthService = {
 
   async resetPassword(token, password) {
     await pause(800);
-    if (!token) throw new AuthError("That link is missing its token.");
+    if (!token) throw new AuthError({ key: "auth.err.noToken" });
     const bad = checkPassword(password);
     if (bad) throw new AuthError(bad, "password");
   },

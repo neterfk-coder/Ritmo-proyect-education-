@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db, json } from "../db.js";
 import { route, ApiError } from "../lib/http.js";
+import { langOf } from "../lib/lang.js";
 import { parse } from "../lib/validate.js";
 import { buildExport, recomputeProfile } from "../services/profileEngine.js";
 
@@ -39,7 +40,7 @@ profile.get(
 profile.post(
   "/:studentId/recompute",
   route(async (req, res) => {
-    const updated = await recomputeProfile(req.params.studentId);
+    const updated = await recomputeProfile(req.params.studentId, langOf(req));
     // Null means there is nothing recorded yet, which is not an error and is
     // not an empty profile either. Say which.
     if (!updated) return res.json(null);
@@ -82,7 +83,7 @@ profile.post(
       orderBy: { confidence: "desc" },
     });
 
-    const body = buildExport(student, student.profile, insights, audience);
+    const body = buildExport(student, student.profile, insights, audience, langOf(req));
     const record = await db.profileExport.create({
       data: { studentId: student.id, audience, body },
     });

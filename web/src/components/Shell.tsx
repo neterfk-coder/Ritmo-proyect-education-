@@ -1,17 +1,21 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useStudent } from "../state/StudentContext";
+import { useT } from "../lib/i18n";
+import type { Key } from "../lib/i18n";
 import { AccessibilityBar } from "./AccessibilityBar";
 import { Companion } from "./Companion";
 import { GuestStrip } from "./GuestStrip";
+import { LangToggle } from "./LangToggle";
 
-const NAV = [
-  { to: "/work", label: "Work" },
-  { to: "/profile", label: "How I work" },
-  { to: "/privacy", label: "My data" },
+const NAV: { to: string; label: Key }[] = [
+  { to: "/work", label: "nav.work" },
+  { to: "/profile", label: "nav.profile" },
+  { to: "/privacy", label: "nav.privacy" },
 ];
 
 export function Shell() {
   const { student, aiMode, hosted } = useStudent();
+  const t = useT();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -21,7 +25,7 @@ export function Shell() {
                    focus:bg-surface focus:border focus:border-line focus:rounded-card
                    focus:px-4 focus:py-2 focus:text-sm"
       >
-        Skip to the work
+        {t("shell.skip")}
       </a>
 
       <header className="border-b border-line bg-surface/70 backdrop-blur-sm sticky top-0 z-40">
@@ -30,7 +34,7 @@ export function Shell() {
           {/* The active page is marked by a rule under it rather than a filled
               pill: it reads as "you are here" without another block of colour
               competing with the step. */}
-          <nav className="flex items-center gap-1 h-full" aria-label="Main">
+          <nav className="flex items-center gap-1 h-full" aria-label={t("nav.aria")}>
             {NAV.map((item) => (
               <NavLink
                 key={item.to}
@@ -42,7 +46,7 @@ export function Shell() {
               >
                 {({ isActive }) => (
                   <>
-                    {item.label}
+                    {t(item.label)}
                     <span
                       aria-hidden
                       className={`absolute inset-x-2 -bottom-px h-px transition-colors duration-200 ${
@@ -54,14 +58,15 @@ export function Shell() {
               </NavLink>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-3 sm:gap-4">
             {aiMode === "mock" && (
-              <span className="eyebrow hidden sm:inline" title="No API key set. Everything still works.">
-                offline engine
+              <span className="eyebrow hidden lg:inline" title={t("shell.offlineTitle")}>
+                {t("shell.offline")}
               </span>
             )}
+            <LangToggle />
             <AccessibilityBar />
-            {student && <span className="text-sm text-muted">{student.alias}</span>}
+            {student && <span className="text-sm text-muted hidden sm:inline">{student.alias}</span>}
           </div>
         </div>
       </header>
@@ -78,17 +83,17 @@ export function Shell() {
         <div className="mx-auto max-w-page px-6 py-6 flex flex-wrap gap-x-6 gap-y-2 items-baseline">
           <span className="eyebrow">Ritmo</span>
           <p className="text-sm text-muted">
-            No camera. No microphone unless you press it. No teacher dashboard.{" "}
+            {t("shell.promise")}{" "}
             {hosted ? (
               <>
-                This copy stores your work on a server —{" "}
+                {t("shell.hosted")}{" "}
                 <NavLink to="/privacy" className="underline underline-offset-4 decoration-line">
-                  what that means
+                  {t("shell.hostedLink")}
                 </NavLink>
                 .
               </>
             ) : (
-              "Nothing leaves this device unless you export it."
+              t("shell.local")
             )}
           </p>
         </div>

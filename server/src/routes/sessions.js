@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db.js";
 import { route, ApiError } from "../lib/http.js";
+import { langOf } from "../lib/lang.js";
 import { parse } from "../lib/validate.js";
 import { scoreFriction } from "../services/frictionEngine.js";
 import { recomputeProfile } from "../services/profileEngine.js";
@@ -93,6 +94,10 @@ sessions.post(
       offer,
       // Named after what is happening, not after what is wrong with the student.
       reading: result.label,
+      // The key as well as the sentence: the browser words it in whichever
+      // language is on screen and falls back to the sentence if it meets a
+      // signal it has no wording for.
+      signal: result.topSignal,
       options,
     });
   })
@@ -171,7 +176,7 @@ sessions.post(
       where: { id: req.params.id },
       data: { ...body, endedAt: new Date() },
     });
-    const profile = await recomputeProfile(session.studentId);
+    const profile = await recomputeProfile(session.studentId, langOf(req));
     res.json({ session, profile });
   })
 );

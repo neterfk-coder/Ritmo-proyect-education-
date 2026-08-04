@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../lib/i18n";
+import { interventionLabel, signalLabel } from "../lib/labels";
 import type { FrictionReading } from "../lib/types";
 
 /**
@@ -22,6 +24,7 @@ export function InterventionSheet({
   onChoose: (key: string) => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   const first = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -35,17 +38,22 @@ export function InterventionSheet({
     <div
       role="dialog"
       aria-modal="false"
-      aria-label="Options"
+      aria-label={t("sheet.aria")}
       className="fixed inset-x-0 bottom-0 z-50 px-4 pb-4 sm:px-6 sm:pb-6 rise"
     >
       <div className="mx-auto max-w-reading panel p-5 sm:p-6 space-y-4 shadow-lg">
-        <span className="panel-legend">Noticed</span>
-        <span className="panel-meta" title="Score against your own threshold">
+        <span className="panel-legend">{t("sheet.legend")}</span>
+        <span className="panel-meta" title={t("sheet.scoreTitle")}>
           {reading.score.toFixed(2)} / {reading.threshold.toFixed(2)}
         </span>
 
         <p className="text-sm text-muted reading pt-1">
-          This one has been open a while — {reading.reading}. Anything here help?
+          {t("sheet.line", {
+            // The server sends both the signal's key and its English sentence.
+            // We prefer the key so the reason is in the reader's language, and
+            // fall back to the sentence if a new signal ever arrives first.
+            reading: signalLabel(t, reading.signal, reading.reading),
+          })}
         </p>
 
         <div className="flex flex-col gap-1.5 stagger">
@@ -63,14 +71,14 @@ export function InterventionSheet({
                 className="h-1.5 w-1.5 rounded-full bg-line group-hover:bg-lit shrink-0
                            transition-colors duration-200"
               />
-              {option.label}
+              {interventionLabel(t, option.key, option.label)}
             </button>
           ))}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           <button className="btn-bare" onClick={onDismiss}>
-            No, I am fine — ask me less often
+            {t("sheet.dismiss")}
           </button>
           <span className="font-mono text-[0.6875rem] text-faint" aria-hidden>
             esc

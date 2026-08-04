@@ -150,11 +150,21 @@ model Rendering {
   taskId    String
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   format    String   // skeleton | dialogue | map | comic | audio
+  // Which language this shape was written in. Part of the key, because a
+  // rendering is a view of the task rather than the task itself: a student who
+  // switches language should get the map in the language they now read, and
+  // the one they had before is still worth keeping for switching back.
+  //
+  // The Decomposition deliberately has no such column. Its steps carry the
+  // student's progress, so regenerating them on a language switch would throw
+  // away which steps they had finished — a task stays in the language it was
+  // opened in.
+  lang      String   @default("en")
   body      String   // markdown-ish text
   wordCount Int      @default(0)
   createdAt DateTime @default(now())
 
-  @@unique([taskId, format])
+  @@unique([taskId, format, lang])
 }
 
 model Session {

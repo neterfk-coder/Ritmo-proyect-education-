@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { useStudent } from "../state/StudentContext";
+import { useT } from "../lib/i18n";
+import type { Key } from "../lib/i18n";
 import { Owl } from "./Owl";
-import { PHRASES, STARTERS, nextPhrase } from "../lib/companion";
+import { STARTERS, nextPhrase, randomPhrase } from "../lib/companion";
 
 interface Message {
   id: number;
@@ -26,8 +28,9 @@ interface Message {
  */
 export function Companion() {
   const { student, patch } = useStudent();
+  const t = useT();
   const [open, setOpen] = useState(false);
-  const [phrase, setPhrase] = useState(() => PHRASES[Math.floor(Math.random() * PHRASES.length)]);
+  const [phrase, setPhrase] = useState<Key>(randomPhrase);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -67,11 +70,7 @@ export function Companion() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          id: nextId.current++,
-          from: "owl",
-          text: "I could not reach the guide just now. If the rest of the app is also not responding, the local server is probably down — from the project folder, run npm run dev.",
-        },
+        { id: nextId.current++, from: "owl", text: t("owl.unreachable") },
       ]);
     } finally {
       setThinking(false);
@@ -84,34 +83,32 @@ export function Companion() {
         <div
           ref={panel}
           role="dialog"
-          aria-label="Guide"
+          aria-label={t("owl.dialog")}
           className="companion-in panel w-[min(22rem,calc(100vw-2rem))] shadow-lg overflow-hidden"
         >
           <header className="flex items-center gap-3 px-4 py-3 border-b border-line bg-raised/50">
             <Owl size={30} />
             <div className="min-w-0">
               <p className="text-sm text-ink leading-tight">Ovi</p>
-              <p className="text-[0.6875rem] text-faint leading-tight">
-                Guide to this app — not to your homework
-              </p>
+              <p className="text-[0.6875rem] text-faint leading-tight">{t("owl.role")}</p>
             </div>
             <button
               className="ml-auto btn-bare !text-xs !no-underline text-faint hover:text-ink"
               onClick={() => setOpen(false)}
-              aria-label="Close the guide"
+              aria-label={t("owl.closeAria")}
             >
-              close
+              {t("owl.close")}
             </button>
           </header>
 
           <div ref={log} className="max-h-[46vh] overflow-y-auto px-4 py-4 space-y-4">
             <div className="rounded-card border border-line bg-raised/40 p-3.5">
-              <p className="text-[0.9375rem] reading">{phrase}</p>
+              <p className="text-[0.9375rem] reading">{t(phrase)}</p>
               <button
                 className="btn-bare !text-xs mt-2"
                 onClick={() => setPhrase(nextPhrase(phrase))}
               >
-                another one
+                {t("owl.another")}
               </button>
             </div>
 
@@ -133,7 +130,7 @@ export function Companion() {
             ))}
 
             {thinking && (
-              <div className="flex items-center gap-1.5 pl-1" aria-label="thinking">
+              <div className="flex items-center gap-1.5 pl-1" aria-label={t("owl.thinking")}>
                 {[0, 1, 2].map((i) => (
                   <span
                     key={i}
@@ -146,17 +143,17 @@ export function Companion() {
 
             {messages.length === 0 && (
               <div className="space-y-2">
-                <p className="eyebrow">Or pick one</p>
+                <p className="eyebrow">{t("owl.orPick")}</p>
                 <div className="flex flex-col gap-1.5">
-                  {STARTERS.map((s) => (
+                  {STARTERS.map((starter) => (
                     <button
-                      key={s}
-                      onClick={() => send(s)}
+                      key={starter}
+                      onClick={() => send(t(starter))}
                       className="text-left text-sm text-muted border border-line rounded-card
                                  px-3 py-2 hover:text-ink hover:border-muted hover:bg-raised
                                  transition-colors duration-200 ease-calm"
                     >
-                      {s}
+                      {t(starter)}
                     </button>
                   ))}
                 </div>
@@ -173,7 +170,7 @@ export function Companion() {
               }}
             >
               <label htmlFor="companion-input" className="sr-only">
-                Ask the guide
+                {t("owl.inputLabel")}
               </label>
               <input
                 id="companion-input"
@@ -181,17 +178,17 @@ export function Companion() {
                 className="field !py-2 text-sm"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="Ask how something works"
+                placeholder={t("owl.placeholder")}
               />
               <button className="btn-quiet !px-3 shrink-0" disabled={!draft.trim() || thinking}>
-                Ask
+                {t("owl.send")}
               </button>
             </form>
             <button
               className="btn-bare !text-[0.6875rem] text-faint"
               onClick={() => patch({ companionOn: false })}
             >
-              Turn the guide off — you can bring it back under Reading
+              {t("owl.turnOff")}
             </button>
           </div>
         </div>
@@ -200,8 +197,8 @@ export function Companion() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={open ? "Close the guide" : "Open the guide"}
-        title={open ? "Close the guide" : "Ask the guide"}
+        aria-label={open ? t("owl.closeAria") : t("owl.openAria")}
+        title={open ? t("owl.closeAria") : t("owl.askTitle")}
         className="owl-dock grid place-items-center h-14 w-14 rounded-full bg-surface border
                    border-line shadow-md hover:border-pine focus-visible:border-pine"
       >

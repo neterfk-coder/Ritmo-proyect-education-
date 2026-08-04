@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { listen } from "../lib/speech";
+import { useT } from "../lib/i18n";
 import { Decompiling } from "./Decompiling";
 
 /**
@@ -12,6 +13,7 @@ import { Decompiling } from "./Decompiling";
 export function TaskIntake({
   onSubmit, busy,
 }: { onSubmit: (text: string) => void; busy: boolean }) {
+  const t = useT();
   const [text, setText] = useState("");
   const [dictating, setDictating] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -20,7 +22,7 @@ export function TaskIntake({
 
   const readFile = async (file: File) => {
     if (file.size > 400_000) {
-      setError("That file is larger than this reads. Paste the part you need instead.");
+      setError(t("intake.tooLarge"));
       return;
     }
     setError(null);
@@ -37,7 +39,7 @@ export function TaskIntake({
       if (final) setText((prev) => `${prev} ${heard}`.trim());
     });
     if (!handle) {
-      setError("This browser has no dictation. Chrome and Edge do.");
+      setError(t("intake.noDictation"));
       return;
     }
     recognition.current = handle;
@@ -66,28 +68,30 @@ export function TaskIntake({
           dragging ? "border-pine bg-raised" : ""
         }`}
       >
-        <span className="panel-legend">{dragging ? "Drop it here" : "The assignment"}</span>
+        <span className="panel-legend">
+          {dragging ? t("intake.drop") : t("intake.legend")}
+        </span>
 
         <label htmlFor="assignment" className="sr-only">
-          Paste the assignment
+          {t("intake.label")}
         </label>
         <textarea
           id="assignment"
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={7}
-          placeholder="Paste the assignment exactly as your teacher wrote it. Do not tidy it up — the messy wording is the part this is for."
+          placeholder={t("intake.placeholder")}
           className="w-full bg-transparent px-4 pt-5 pb-3.5 text-[0.9375rem] reading resize-y
                      outline-none placeholder:text-faint"
         />
 
         <div className="flex flex-wrap items-center gap-2 border-t border-line px-3 py-2.5">
           <button className="btn-bare" onClick={toggleDictation}>
-            {dictating ? "Stop talking" : "Say it instead"}
+            {dictating ? t("intake.stopTalking") : t("intake.sayIt")}
           </button>
           <span className="text-faint" aria-hidden>·</span>
           <label className="btn-bare cursor-pointer">
-            Open a text file
+            {t("intake.openFile")}
             <input
               type="file"
               accept=".txt,.md"
@@ -96,7 +100,7 @@ export function TaskIntake({
             />
           </label>
           <span className="ml-auto font-mono text-[0.6875rem] text-faint">
-            {words} {words === 1 ? "word" : "words"}
+            {words} {words === 1 ? t("intake.word") : t("intake.words")}
           </span>
         </div>
       </div>
@@ -105,16 +109,16 @@ export function TaskIntake({
       {dictating && (
         <p className="flex items-center gap-2 text-sm text-muted rise">
           <span className="think-dot block h-1.5 w-1.5 rounded-full bg-lit" aria-hidden />
-          Listening. It writes as you finish each sentence.
+          {t("intake.listening")}
         </p>
       )}
 
       <div className="flex flex-wrap items-center gap-4">
         <button className="btn-primary" disabled={!ready} onClick={() => onSubmit(text.trim())}>
-          Work out what this asks
+          {t("intake.submit")}
         </button>
         {!ready && text.length > 0 && (
-          <p className="text-xs text-faint">A little more of it, and this turns on.</p>
+          <p className="text-xs text-faint">{t("intake.needMore")}</p>
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db, json } from "../db.js";
 import { route } from "../lib/http.js";
 import { parse } from "../lib/validate.js";
+import { langOf } from "../lib/lang.js";
 import { answerQuestion } from "../ai/companion.js";
 import { env } from "../env.js";
 
@@ -32,7 +33,11 @@ companion.post(
       directives = json.read(profile?.directives);
     }
 
-    const answer = await answerQuestion({ question: body.question, directives });
+    const answer = await answerQuestion({
+      question: body.question,
+      directives,
+      lang: langOf(req),
+    });
     res.json(answer);
   })
 );

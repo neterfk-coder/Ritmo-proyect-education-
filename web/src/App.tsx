@@ -8,9 +8,11 @@ import { Workspace } from "./pages/Workspace";
 import { Profile } from "./pages/Profile";
 import { Privacy } from "./pages/Privacy";
 import { useStudent } from "./state/StudentContext";
+import { useT } from "./lib/i18n";
 
 export default function App() {
   const { student, loading } = useStudent();
+  const t = useT();
 
   // The field is on before there is an account to store a preference on, and
   // takes the student's own setting the moment there is one.
@@ -23,7 +25,7 @@ export default function App() {
           <Owl size={36} />
           <div>
             <p className="font-display text-2xl leading-none tracking-tight">Ritmo</p>
-            <p className="flex items-center gap-1.5 pt-2" aria-label="Opening">
+            <p className="flex items-center gap-1.5 pt-2" aria-label={t("app.opening")}>
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}

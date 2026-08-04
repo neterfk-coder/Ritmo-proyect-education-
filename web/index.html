@@ -56,9 +56,22 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      Both languages, because this is the one message that has to land before
+      any of the app has run. `lang` on <html> starts at en and is corrected by
+      the provider on mount; there is nothing here that can read a preference
+      before then, so the fallback says it twice rather than guessing.
+    -->
     <noscript>
-      Ritmo needs JavaScript to run. If you would rather not enable it, the
-      repository holds the whole thing and it runs locally in two commands.
+      <p lang="en">
+        Ritmo needs JavaScript to run. If you would rather not enable it, the
+        repository holds the whole thing and it runs locally in two commands.
+      </p>
+      <p lang="es">
+        Ritmo necesita JavaScript para funcionar. Si prefieres no activarlo, el
+        repositorio tiene el proyecto entero y se ejecuta en local con dos
+        comandos.
+      </p>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>

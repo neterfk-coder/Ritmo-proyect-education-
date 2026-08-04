@@ -18,8 +18,29 @@ Voice rules, all mandatory:
 - Assume the reader is intelligent and is not confused about the subject.
   They are stuck on the shape of the task, not on the ideas in it.`;
 
+/**
+ * The language instruction.
+ *
+ * Deliberately explicit about register rather than only naming the language.
+ * Spanish has a formality choice English does not, and a model left to guess
+ * reaches for `usted` — which puts a desk between a 13-year-old and the tool
+ * that is supposed to be theirs. The tú instruction is the same decision made
+ * in `web/src/lib/i18n.tsx`, and the two have to agree or the interface and
+ * its content will address the same student two different ways on one screen.
+ */
+const LANGUAGE = {
+  en: `
+Write in English.`,
+  es: `
+Write everything in Spanish (español). This includes every string inside any
+JSON you return — keys stay in English, values are Spanish.
+Address the student as tú, never usted. Use neutral phrasing rather than
+gendered adjectives about the student: you do not know their gender and must
+not guess it. No exclamation marks, which in Spanish means no ¡ either.`,
+};
+
 /** Builds the system prompt from the student's own profile directives. */
-export function systemFor(student, profile) {
+export function systemFor(student, profile, lang = "en") {
   const directives = profile?.directives ?? [];
   const lines = directives.length
     ? directives.map((d) => `- ${d}`).join("\n")
@@ -35,7 +56,8 @@ student.
 ${lines}
 
 Age band: ${student.ageBand}. Preferred format: ${student.defaultFormat}.
-${HOUSE_STYLE}`;
+${HOUSE_STYLE}
+${LANGUAGE[lang] ?? LANGUAGE.en}`;
 }
 
 export function decomposePrompt(rawText) {
