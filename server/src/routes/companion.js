@@ -37,6 +37,9 @@ companion.post(
       question: body.question,
       directives,
       lang: langOf(req),
+      // Which copy this is decides which support advice is true — "run npm
+      // run dev" fixes a laptop and confuses a phone.
+      hosted: env.hosted,
     });
     res.json(answer);
   })

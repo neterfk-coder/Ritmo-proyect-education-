@@ -35,8 +35,8 @@ export const TOPICS = [
       es: ["empezar", "empiezo", "cómo empiezo", "nueva tarea", "añadir tarea", "primera tarea", "pegar", "dónde pongo", "deberes", "tarea", "subir", "enviar", "meter mi trabajo"],
     },
     answer: {
-      en: "Go to Work and paste the assignment exactly as your teacher gave it to you. Do not tidy the wording up — the messy phrasing is the part this is built to decode.\n\nYou can also drop in a .txt or .md file, or press \"Say it instead\" and talk.",
-      es: "Ve a Trabajo y pega la tarea exactamente como te la dio tu profesor. No ordenes el enunciado: el texto enrevesado es justo lo que esto está hecho para descifrar.\n\nTambién puedes soltar un archivo .txt o .md, o pulsar \"Dilo en voz alta\" y hablar.",
+      en: "Go to Work and paste the assignment exactly as your teacher gave it to you. Do not tidy the wording up — the messy phrasing is the part this is built to decode.\n\nYou can also drop in a PDF or a .txt or .md file — a PDF is read on your own device and only its text is used — or press \"Say it instead\" and talk.",
+      es: "Ve a Trabajo y pega la tarea exactamente como te la dio tu profesor. No ordenes el enunciado: el texto enrevesado es justo lo que esto está hecho para descifrar.\n\nTambién puedes soltar un PDF o un archivo .txt o .md — el PDF se lee en tu propio dispositivo y solo se usa su texto — o pulsar \"Dilo en voz alta\" y hablar.",
     },
   },
   {
@@ -221,6 +221,10 @@ export const TOPICS = [
       en: ["privacy", "data", "what do you collect", "camera", "spying", "watching me", "tracked", "who can see", "is it private", "my data", "store", "stored", "collect", "know about me", "see my data", "safe", "secure", "anonymous", "webcam", "microphone"],
       es: ["privacidad", "datos", "qué recoges", "qué guardas", "cámara", "espiando", "me vigila", "quién puede ver", "es privado", "mis datos", "guardar", "recoger", "qué sabes de mí", "seguro", "anónimo", "webcam", "micrófono"],
     },
+    hostedAnswer: {
+      en: "No camera. No microphone unless you press dictation, and that audio never leaves the device. No keystroke log — friction is five numbers between 0 and 1, computed in your browser and discarded after scoring.\n\nThere is no teacher dashboard and no parent digest, and no account for anyone but you. This copy keeps your rows in a database on a server, so whoever operates the site can reach them — the \"My data\" page says exactly what that means, and has the erase button.",
+      es: "Sin cámara. Sin micrófono salvo que pulses el dictado, y ese audio nunca sale del dispositivo. Sin registro de teclas: la fricción son cinco números entre 0 y 1, calculados en tu navegador y descartados tras puntuar.\n\nNo hay panel para el profesorado ni resumen para las familias, ni cuenta para nadie más que tú. Esta copia guarda tus filas en una base de datos en un servidor, así que quien opere el sitio puede llegar a ellas: la página \"Mis datos\" dice exactamente qué significa eso, y tiene el botón de borrar.",
+    },
     answer: {
       en: "No camera. No microphone unless you press dictation, and that audio never leaves the device. No keystroke log — friction is five numbers between 0 and 1, computed in your browser and discarded after scoring.\n\nThere is no teacher dashboard and no parent digest. There is no table in the database for a person who is not you. Everything sits in a file on the machine running this app.\n\nThe \"My data\" page says all of this in full, and has the erase button.",
       es: "Sin cámara. Sin micrófono salvo que pulses el dictado, y ese audio nunca sale del dispositivo. Sin registro de teclas: la fricción son cinco números entre 0 y 1, calculados en tu navegador y descartados después de puntuar.\n\nNo hay panel para el profesorado ni resumen para las familias. No hay ninguna tabla en la base de datos para una persona que no seas tú. Todo está en un archivo en la máquina que ejecuta esta app.\n\nLa página \"Mis datos\" lo dice todo con detalle, y tiene el botón de borrar.",
@@ -231,6 +235,10 @@ export const TOPICS = [
     keys: {
       en: ["account", "id", "log in", "login", "sign in", "another browser", "another device", "password", "lost my account", "device", "browser", "switch computer", "same account"],
       es: ["cuenta", "identificador", "entrar", "iniciar sesión", "otro navegador", "otro dispositivo", "contraseña", "he perdido mi cuenta", "navegador", "otro ordenador", "la misma cuenta"],
+    },
+    hostedAnswer: {
+      en: "Your account id is on the \"My data\" page — copy it to open the same account in another browser or on your phone. There is no password: the id is the whole key, so keep it somewhere you can find and nobody else can.\n\nIf you lost the id and this browser has forgotten it, the account cannot be recovered.",
+      es: "El id de tu cuenta está en la página \"Mis datos\": cópialo para abrir la misma cuenta en otro navegador o en tu móvil. No hay contraseña: el id es la llave entera, así que guárdalo donde tú lo encuentres y nadie más pueda.\n\nSi perdiste el id y este navegador lo ha olvidado, la cuenta no se puede recuperar.",
     },
     answer: {
       en: "Your account id is on the \"My data\" page — copy it to open the same account in another browser. There is no password because there is no server holding accounts.\n\nIf you lost the id and cleared the browser, the account cannot be recovered. That is the cost of there being no account server.",
@@ -254,6 +262,10 @@ export const TOPICS = [
       en: ["offline", "api key", "anthropic", "no key", "model", "ai mode", "mock", "does it need internet", "live", "internet", "wifi", "free", "cost", "groq", "provider"],
       es: ["sin conexión", "clave de api", "anthropic", "sin clave", "modelo", "necesita internet", "internet", "wifi", "gratis", "coste", "groq", "proveedor"],
     },
+    hostedAnswer: {
+      en: "This copy is running a live model, so assignments are read and worked out by it rather than by templates — the header would say \"offline engine\" if that were not the case.\n\nThe project itself needs no key at all: run it locally and a deterministic engine covers every feature with no network and no cost. Two commands, on the \"My data\" page.",
+      es: "Esta copia lleva un modelo en vivo, así que las tareas las lee y las resuelve el modelo y no unas plantillas: la cabecera diría \"motor sin conexión\" si no fuera el caso.\n\nEl proyecto en sí no necesita clave ninguna: ejecútalo en local y un motor determinista cubre todas las funciones sin red y sin coste. Dos comandos, en la página \"Mis datos\".",
+    },
     answer: {
       en: "Ritmo runs fully offline by default. Without a key it uses a deterministic engine that runs the same code paths and returns the same shapes as the model — every feature is usable with no key, no network and no cost.\n\nTo use the live model, put an ANTHROPIC_API_KEY in server/.env and restart. The header says which mode you are in.",
       es: "Ritmo funciona del todo sin conexión por defecto. Sin clave usa un motor determinista que recorre los mismos caminos de código y devuelve las mismas formas que el modelo: todas las funciones se pueden usar sin clave, sin red y sin coste.\n\nPara usar el modelo en vivo, pon una ANTHROPIC_API_KEY en server/.env y reinicia. La cabecera dice en qué modo estás.",
@@ -264,6 +276,10 @@ export const TOPICS = [
     keys: {
       en: ["not loading", "blank page", "nothing happens", "broken", "white screen", "will not load", "stuck loading", "does not work", "blank", "nothing loads", "crash", "wont open", "empty screen", "page is white"],
       es: ["no carga", "página en blanco", "no pasa nada", "roto", "pantalla blanca", "no funciona", "se queda cargando", "no abre", "pantalla vacía", "algo no carga", "se ha roto"],
+    },
+    hostedAnswer: {
+      en: "Try these in order:\n\n1. Hard refresh the page — Ctrl+Shift+R, or pull down to refresh on a phone.\n2. Open /api/health on this site. If it answers ok: true, the server is fine and the refresh should have fixed it.\n3. If it does not answer, the site itself is having a moment. Nothing you did caused it, and nothing you had finished is lost — try again in a few minutes.\n4. If the page loads but nothing saves, your browser may be blocking storage in private mode.",
+      es: "Prueba esto en orden:\n\n1. Recarga forzando: Ctrl+Shift+R, o desliza hacia abajo en el móvil.\n2. Abre /api/health en este sitio. Si contesta ok: true, el servidor está bien y la recarga debería haberlo arreglado.\n3. Si no contesta, el sitio está teniendo un mal momento. No lo causaste tú, y nada de lo que habías terminado se ha perdido: inténtalo en unos minutos.\n4. Si la página carga pero no se guarda nada, puede que tu navegador bloquee el almacenamiento en modo privado.",
     },
     answer: {
       en: "Try these in order:\n\n1. Check the API is up — open http://localhost:4000/api/health. It should return ok: true.\n2. If it does not, the server is not running. From the project folder run: npm run dev\n3. Hard refresh the page — Ctrl+Shift+R.\n4. If the page loads but nothing saves, your browser may be blocking local storage in private mode.",
@@ -276,6 +292,10 @@ export const TOPICS = [
       en: ["server error", "did not answer", "500", "502", "cannot reach", "connection refused", "api down", "port", "address in use", "eaddrinuse", "error", "failed", "not responding", "api"],
       es: ["error del servidor", "no respondió", "no responde", "no puedo conectar", "conexión rechazada", "api caída", "puerto", "puerto ocupado", "error", "ha fallado"],
     },
+    hostedAnswer: {
+      en: "\"The server did not answer\" means this site's own API is not responding right now.\n\nThat is on the site, not on you, and it usually passes quickly. Your finished steps and your profile are stored, not held in the page, so nothing is lost. Wait a minute and try again; if it keeps happening, the person running this deployment is the one who can fix it.",
+      es: "\"El servidor no respondió\" significa que la propia API de este sitio no está contestando ahora mismo.\n\nEso es cosa del sitio, no tuya, y suele pasar rápido. Tus pasos terminados y tu perfil están guardados, no colgando de la página, así que no se pierde nada. Espera un minuto y vuelve a intentarlo; si sigue pasando, quien administra este despliegue es quien puede arreglarlo.",
+    },
     answer: {
       en: "\"The server did not answer\" means the API on port 4000 is not reachable.\n\n· Make sure npm run dev is running and shows both the API and the app.\n· If it says the port is in use, something else is on 4000. Change PORT in server/.env and restart.\n· Model failures never surface as errors — they fall back to the offline engine — so a visible error is almost always the local server, not the model.",
       es: "\"El servidor no respondió\" significa que no se llega a la API en el puerto 4000.\n\n· Asegúrate de que npm run dev está en marcha y muestra tanto la API como la web.\n· Si dice que el puerto está ocupado, hay otra cosa en el 4000. Cambia PORT en server/.env y reinicia.\n· Los fallos del modelo nunca salen como error: caen al motor sin conexión. Así que un error visible es casi siempre el servidor local, no el modelo.",
@@ -286,6 +306,10 @@ export const TOPICS = [
     keys: {
       en: ["database", "prisma", "sqlite", "reset the database", "seed", "migration", "db"],
       es: ["base de datos", "prisma", "sqlite", "reiniciar la base de datos", "migración", "semilla"],
+    },
+    hostedAnswer: {
+      en: "On this hosted copy the database is managed on the server, so there is nothing for you to reset by hand — and nothing you need to. If something looks stuck, a hard refresh usually clears it.\n\nIf you want the version where the data is a file you own and can inspect, the repository runs locally in two commands; the \"My data\" page has them.",
+      es: "En esta copia alojada la base de datos se gestiona en el servidor, así que no hay nada que tengas que reiniciar a mano, ni falta que hace. Si algo parece atascado, una recarga forzada suele arreglarlo.\n\nSi quieres la versión en la que los datos son un archivo tuyo que puedes inspeccionar, el repositorio se ejecuta en local con dos comandos; la página \"Mis datos\" los tiene.",
     },
     answer: {
       en: "From the project folder:\n\n· npm run db:reset — wipes and reseeds, useful if the data got into a strange state\n· npm run db:studio — opens a browser view of everything stored\n\nThe database is a single SQLite file at server/prisma/dev.db. Deleting it and running npm run setup again gives you a clean start.",
@@ -537,9 +561,19 @@ function signaturesFor(topic, lang, drop) {
   return cached;
 }
 
-/** The answer for a topic, in the language asked for. */
-export function answerFor(topic, lang = DEFAULT_LANG) {
-  return topic.answer[lang] ?? topic.answer[DEFAULT_LANG];
+/**
+ * The answer for a topic, in the language asked for, for the copy the student
+ * is actually on.
+ *
+ * Six topics give operational advice, and the right advice depends on where
+ * this is running: "open http://localhost:4000" and "run npm run dev" are the
+ * correct fix on a laptop running the repo and gibberish on the hosted site —
+ * handed to exactly the person least equipped to see why. Hosted deployments
+ * carry their own variant; everything without one is placement-independent.
+ */
+export function answerFor(topic, lang = DEFAULT_LANG, hosted = false) {
+  const set = (hosted && topic.hostedAnswer) || topic.answer;
+  return set[lang] ?? set[DEFAULT_LANG] ?? topic.answer[DEFAULT_LANG];
 }
 
 const FALLBACKS = {

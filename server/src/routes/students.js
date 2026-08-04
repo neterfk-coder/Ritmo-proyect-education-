@@ -6,13 +6,24 @@ import { parse } from "../lib/validate.js";
 
 export const students = Router();
 
+/*
+  Every key here must do something when pressed. That sounds too obvious to
+  write down, but "speakInstead" sat in this list for the whole project:
+  offered at setup, seeded, served in the friction sheet — and handled nowhere,
+  because mid-task there is no text surface for dictation to type into. The
+  student's writing happens outside the app. A stuck student who chose it in
+  advance pressed it at their worst moment and nothing happened.
+
+  For this product that is not a missing feature, it is a broken promise, and
+  the fix is to stop making it. If a notes surface ever exists, the key can
+  come back with the code that honours it.
+*/
 export const DEFAULT_INTERVENTIONS = [
   { key: "shrink", label: "Make this step smaller", order: 0 },
   { key: "readAloud", label: "Read it to me", order: 1 },
-  { key: "speakInstead", label: "Let me say it instead of typing", order: 2 },
-  { key: "pause", label: "Two minutes away from this", order: 3 },
-  { key: "reframe", label: "Show it a different way", order: 4 },
-  { key: "skip", label: "Park this and come back", order: 5 },
+  { key: "pause", label: "Two minutes away from this", order: 2 },
+  { key: "reframe", label: "Show it a different way", order: 3 },
+  { key: "skip", label: "Park this and come back", order: 4 },
 ];
 
 const createSchema = z.object({

@@ -111,6 +111,12 @@ const S = {
     en: "I could not reach the guide just now. If the rest of the app is also not responding, the local server is probably down — from the project folder, run npm run dev.",
     es: "No he podido llegar a la guía ahora mismo. Si el resto de la app tampoco responde, seguramente el servidor local esté caído: desde la carpeta del proyecto, ejecuta npm run dev.",
   },
+  // The hosted copy's version of the same failure. Telling somebody on a
+  // phone to run npm is advice aimed at a machine they are not sitting at.
+  "owl.unreachableHosted": {
+    en: "I could not reach the guide just now. That is on the site, not on you — nothing you finished is lost. Try again in a moment, and if the whole app is quiet, a hard refresh usually brings it back.",
+    es: "No he podido llegar a la guía ahora mismo. Es cosa del sitio, no tuya: no se ha perdido nada de lo que terminaste. Inténtalo en un momento, y si toda la app está callada, una recarga forzada suele traerla de vuelta.",
+  },
 
   /* ---------- the companion's own lines ---------- */
   "phrase.1": {
@@ -522,9 +528,12 @@ const S = {
   "privacy.accountId": { en: "Your account id", es: "El id de tu cuenta" },
   "privacy.copy": { en: "Copy", es: "Copiar" },
   "privacy.copied": { en: "Copied", es: "Copiado" },
+  // Rewritten when the hosted copy appeared: "there is no server holding
+  // accounts" stopped being true there, and the useful fact was never the
+  // architecture anyway — it is that the id is the whole key.
   "privacy.keepThis": {
-    en: "Keep this to open the same account on another browser. There is no password because there is no server holding accounts.",
-    es: "Guárdalo para abrir la misma cuenta en otro navegador. No hay contraseña porque no hay ningún servidor con cuentas.",
+    en: "Keep this to open the same account on another browser or phone. There is no password — the id is the whole key, so keep it somewhere you can find and nobody else can.",
+    es: "Guárdalo para abrir la misma cuenta en otro navegador o en el móvil. No hay contraseña: el id es la llave entera, así que guárdalo donde tú lo encuentres y nadie más pueda.",
   },
   "privacy.erase": { en: "Erase everything", es: "Borrarlo todo" },
   "privacy.eraseBody": {

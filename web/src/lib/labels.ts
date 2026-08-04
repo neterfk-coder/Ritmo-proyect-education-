@@ -17,6 +17,8 @@ import type { Format } from "./types";
 const INTERVENTIONS: Record<string, Key> = {
   shrink: "iv.shrink",
   readAloud: "iv.readAloud",
+  // Withdrawn from offer (it was never wired to anything), kept here so an
+  // old account that still holds the row renders words rather than a raw key.
   speakInstead: "iv.speakInstead",
   pause: "iv.pause",
   reframe: "iv.reframe",

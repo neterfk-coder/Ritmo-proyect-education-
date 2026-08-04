@@ -25,7 +25,6 @@ const db = new PrismaClient(pooled ? { datasourceUrl: pooled } : undefined);
 const INTERVENTIONS = [
   { key: "shrink", label: "Make this step smaller", order: 0, enabled: true },
   { key: "readAloud", label: "Read it to me", order: 1, enabled: true },
-  { key: "speakInstead", label: "Let me say it instead of typing", order: 2, enabled: true },
   { key: "pause", label: "Two minutes away from this", order: 3, enabled: true },
   { key: "reframe", label: "Show it a different way", order: 4, enabled: true },
   { key: "skip", label: "Park this and come back", order: 5, enabled: false },

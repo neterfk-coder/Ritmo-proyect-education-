@@ -74,8 +74,15 @@ sessions.post(
         })
       : null;
 
+    // Only keys the workspace actually acts on. Accounts created before
+    // "speakInstead" was withdrawn still hold its row, and an option that does
+    // nothing when pressed must never reach a stuck student's screen — that
+    // is the moment the product least gets to waste.
+    const ACTIONABLE = new Set(["shrink", "readAloud", "pause", "reframe", "skip"]);
     const options = offer
-      ? session.student.interventions.filter((i) => i.enabled).map((i) => ({ key: i.key, label: i.label }))
+      ? session.student.interventions
+          .filter((i) => i.enabled && ACTIONABLE.has(i.key))
+          .map((i) => ({ key: i.key, label: i.label }))
       : [];
 
     // Offered is counted here, when the menu is shown. Counting it on choice

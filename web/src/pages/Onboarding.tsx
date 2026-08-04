@@ -22,10 +22,12 @@ const SUGGESTED_RULES: Key[] = [
   "rule.1", "rule.2", "rule.3", "rule.4", "rule.5", "rule.6", "rule.7",
 ];
 
+// Every option here is wired to a real action in Workspace.tsx. "Let me say
+// it instead of typing" used to be on this list and was wired to nothing —
+// see DEFAULT_INTERVENTIONS in server/src/routes/students.js for the story.
 const OPTIONS: { key: string; label: Key }[] = [
   { key: "shrink", label: "iv.shrink" },
   { key: "readAloud", label: "iv.readAloud" },
-  { key: "speakInstead", label: "iv.speakInstead" },
   { key: "pause", label: "iv.pause" },
   { key: "reframe", label: "iv.reframe" },
   { key: "skip", label: "iv.skip" },

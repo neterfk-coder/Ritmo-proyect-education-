@@ -27,7 +27,7 @@ interface Message {
  *      as the reading settings rather than buried.
  */
 export function Companion() {
-  const { student, patch } = useStudent();
+  const { student, patch, hosted } = useStudent();
   const t = useT();
   const [open, setOpen] = useState(false);
   const [phrase, setPhrase] = useState<Key>(randomPhrase);
@@ -70,7 +70,11 @@ export function Companion() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { id: nextId.current++, from: "owl", text: t("owl.unreachable") },
+        {
+          id: nextId.current++,
+          from: "owl",
+          text: t(hosted ? "owl.unreachableHosted" : "owl.unreachable"),
+        },
       ]);
     } finally {
       setThinking(false);

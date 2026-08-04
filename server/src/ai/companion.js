@@ -61,12 +61,12 @@ parar cuando", "Haz solo esto", "Muy grande", "Apárcalo": name the button as it
 appears on their screen, not as a translation of the English one.`,
 };
 
-export async function answerQuestion({ question, directives = [], lang = DEFAULT_LANG }) {
+export async function answerQuestion({ question, directives = [], lang = DEFAULT_LANG, hosted = false }) {
   const provider = env.companionProvider;
 
   if (provider !== "offline") {
     try {
-      const text = await callProvider(provider, question, directives, lang);
+      const text = await callProvider(provider, question, directives, lang, hosted);
       if (text) return { text, source: provider };
     } catch (err) {
       console.warn(`companion fell back to the offline guide: ${err.message}`);
@@ -75,17 +75,30 @@ export async function answerQuestion({ question, directives = [], lang = DEFAULT
 
   const topic = findTopic(question, lang);
   return {
-    text: topic ? answerFor(topic, lang) : fallbackFor(lang),
+    text: topic ? answerFor(topic, lang, hosted) : fallbackFor(lang),
     source: "offline",
     topic: topic?.id ?? null,
   };
 }
 
-function callProvider(provider, question, directives, lang) {
+/**
+ * Where this copy runs changes which support answers are true. "Run npm run
+ * dev" fixes a laptop and confuses a phone; the live model needs to know which
+ * one it is talking to for the same reason the offline topics carry two
+ * variants.
+ */
+const PLACEMENT = {
+  local:
+    "This copy runs locally: data is a SQLite file on this machine, and the fix for most problems is checking that `npm run dev` is running and http://localhost:4000/api/health answers.",
+  hosted:
+    "This copy is hosted on a website: the student cannot restart servers or run commands, so never suggest npm, localhost or terminal commands. For loading problems suggest a hard refresh and trying again shortly. Data lives in a database on the server, and the privacy page explains what that means.",
+};
+
+function callProvider(provider, question, directives, lang, hosted) {
   // The student's own rules apply here too. A student who wrote "short
   // sentences, I lose long ones halfway through" meant it for every sentence
   // this software produces, not only the ones about their homework.
-  const base = `${SYSTEM}\n\n${LANGUAGE_RULE[lang] ?? LANGUAGE_RULE.en}`;
+  const base = `${SYSTEM}\n\n${hosted ? PLACEMENT.hosted : PLACEMENT.local}\n\n${LANGUAGE_RULE[lang] ?? LANGUAGE_RULE.en}`;
   const system = directives.length
     ? `${base}\n\nThis student wrote these rules for you. They override the above:\n${directives
         .map((d) => `- ${d}`)
