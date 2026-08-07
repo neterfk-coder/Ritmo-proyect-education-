@@ -88,7 +88,7 @@ export function Companion() {
           ref={panel}
           role="dialog"
           aria-label={t("owl.dialog")}
-          className="companion-in panel w-[min(22rem,calc(100vw-2rem))] shadow-lg overflow-hidden"
+          className="companion-in panel w-[min(22rem,calc(100vw-2rem))] floating overflow-hidden"
         >
           <header className="flex items-center gap-3 px-4 py-3 border-b border-line bg-raised/50">
             <Owl size={30} />
@@ -204,7 +204,7 @@ export function Companion() {
         aria-label={open ? t("owl.closeAria") : t("owl.openAria")}
         title={open ? t("owl.closeAria") : t("owl.askTitle")}
         className="owl-dock grid place-items-center h-14 w-14 rounded-full bg-surface border
-                   border-line shadow-md hover:border-pine focus-visible:border-pine"
+                   border-line floating hover:border-pine focus-visible:border-pine"
       >
         <Owl size={38} />
       </button>

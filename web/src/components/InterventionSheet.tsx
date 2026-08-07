@@ -41,7 +41,7 @@ export function InterventionSheet({
       aria-label={t("sheet.aria")}
       className="fixed inset-x-0 bottom-0 z-50 px-4 pb-4 sm:px-6 sm:pb-6 rise"
     >
-      <div className="mx-auto max-w-reading panel p-5 sm:p-6 space-y-4 shadow-lg">
+      <div className="mx-auto max-w-reading panel p-5 sm:p-6 space-y-4 floating">
         <span className="panel-legend">{t("sheet.legend")}</span>
         <span className="panel-meta" title={t("sheet.scoreTitle")}>
           {reading.score.toFixed(2)} / {reading.threshold.toFixed(2)}

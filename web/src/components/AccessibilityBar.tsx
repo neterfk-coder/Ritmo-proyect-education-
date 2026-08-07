@@ -60,7 +60,7 @@ export function AccessibilityBar() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-72 card p-4 space-y-4 rise shadow-sm">
+        <div className="absolute right-0 top-11 z-50 w-72 card p-4 space-y-4 rise floating">
           <Group label={t("a11y.surface")}>
             <div className="flex flex-wrap gap-1.5">
               {THEMES.map((option) => (

@@ -28,7 +28,10 @@ export default {
         mono: ["IBM Plex Mono", "ui-monospace", "monospace"],
       },
       maxWidth: { reading: "36rem", page: "60rem" },
-      borderRadius: { card: "0.375rem" },
+      // 10px. The old 6 was small enough that cards read as boxes drawn
+      // rather than objects placed; larger would start to look playful,
+      // which this is not.
+      borderRadius: { card: "0.625rem" },
       transitionTimingFunction: { calm: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
     },
   },

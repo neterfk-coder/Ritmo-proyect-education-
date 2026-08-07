@@ -12,6 +12,23 @@
   for it is mixed, but our testers asked for it and it costs nothing to offer.
 */
 
+/*
+  Elevation.
+
+  There was none. Every surface in the product sat on exactly the same plane,
+  which is the difference between an interface that reads as calm and one that
+  reads as unfinished — and it is why the whole thing looked flat despite the
+  type and spacing being carefully chosen.
+
+  Restraint here was never an argument against craft. The rule this product
+  actually holds is that one element carries attention and it is the lit step;
+  depth costs no colour, no motion and no attention, so it does not compete
+  with that. A quiet interface should look expensive.
+
+  Tinted with the theme's own ink rather than neutral grey, because a grey
+  shadow under a green-tinted paper reads as dirt. Two layers: a tight one for
+  the contact edge and a wide soft one for the ambient lift.
+*/
 :root,
 [data-theme="calm"] {
   --c-ground: 233 236 231;
@@ -23,6 +40,11 @@
   --c-line: 210 216 209;
   --c-pine: 47 109 94;
   --c-lit: 179 106 34;
+
+  --shadow-rest: 0 1px 2px rgb(22 33 30 / 0.04), 0 2px 6px rgb(22 33 30 / 0.03);
+  --shadow-lift: 0 2px 4px rgb(22 33 30 / 0.05), 0 6px 16px rgb(22 33 30 / 0.06);
+  --shadow-float: 0 4px 10px rgb(22 33 30 / 0.07), 0 16px 40px rgb(22 33 30 / 0.10);
+  --edge: inset 0 0 0 0 transparent;
 }
 
 [data-theme="dark"] {
@@ -35,6 +57,18 @@
   --c-line: 44 53 49;
   --c-pine: 111 181 162;
   --c-lit: 217 154 78;
+
+  /*
+    Dark surfaces cannot be lifted by shadow alone — a dark shadow on a dark
+    ground is invisible. What reads as raised in the dark is a one-pixel
+    highlight along the top edge, where a light above the surface would catch
+    it. That inset line is doing most of the work here; the shadow only
+    separates the card from what is behind it.
+  */
+  --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.30), 0 2px 8px rgb(0 0 0 / 0.22);
+  --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.35), 0 8px 24px rgb(0 0 0 / 0.30);
+  --shadow-float: 0 6px 16px rgb(0 0 0 / 0.40), 0 24px 56px rgb(0 0 0 / 0.45);
+  --edge: inset 0 1px 0 rgb(255 255 255 / 0.045);
 }
 
 [data-theme="contrast"] {
@@ -47,6 +81,17 @@
   --c-line: 0 0 0;
   --c-pine: 0 71 56;
   --c-lit: 138 74 0;
+
+  /*
+    None, deliberately. This theme exists for students who need edges to be
+    unambiguous, and a soft shadow is a blurred edge — it works against the one
+    thing the theme is for. Separation here is the full-black border doing its
+    job alone.
+  */
+  --shadow-rest: none;
+  --shadow-lift: none;
+  --shadow-float: none;
+  --edge: inset 0 0 0 0 transparent;
 }
 
 [data-tint="amber"] { --tint: 255 214 140; }
@@ -92,28 +137,60 @@
 @layer components {
   .card {
     @apply bg-surface border border-line rounded-card;
+    box-shadow: var(--edge), var(--shadow-rest);
   }
   .eyebrow {
     @apply font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-faint;
   }
+
+  /*
+    Buttons lift on hover and press back down on click.
+
+    The transition covers transform and shadow as well as colour, so a press
+    has a physical answer instead of a colour swap. One pixel of travel — the
+    smallest movement that registers as a response rather than as the page
+    twitching. Reduced motion drops the travel and keeps the colour, further
+    down this file.
+  */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-card border px-4 py-2.5
-           text-sm transition-colors duration-200 ease-calm disabled:opacity-40
-           disabled:cursor-not-allowed;
+           text-sm transition-all duration-200 ease-calm disabled:opacity-40
+           disabled:cursor-not-allowed disabled:hover:translate-y-0;
   }
   .btn-primary {
-    @apply btn bg-pine text-surface border-pine hover:bg-ink hover:border-ink;
+    @apply btn bg-pine text-surface border-pine hover:bg-ink hover:border-ink
+           hover:-translate-y-px active:translate-y-0;
+    box-shadow: var(--shadow-rest);
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: var(--shadow-lift);
+  }
+  .btn-primary:active:not(:disabled) {
+    box-shadow: var(--shadow-rest);
   }
   .btn-quiet {
-    @apply btn bg-transparent border-line text-ink hover:bg-raised;
+    @apply btn bg-surface border-line text-ink hover:bg-raised hover:border-muted
+           hover:-translate-y-px active:translate-y-0;
+  }
+  .btn-quiet:hover:not(:disabled) {
+    box-shadow: var(--shadow-rest);
   }
   .btn-bare {
     @apply text-sm text-muted underline underline-offset-4 decoration-line
            hover:text-ink hover:decoration-ink transition-colors;
   }
+  /*
+    The focus state grows a ring rather than only recolouring the border. A
+    one-pixel colour change is not enough to find when you are navigating by
+    keyboard, which a lot of these students are.
+  */
   .field {
     @apply w-full bg-surface border border-line rounded-card px-3.5 py-2.5 text-ink
-           placeholder:text-faint focus:border-pine outline-none transition-colors;
+           placeholder:text-faint focus:border-pine outline-none
+           transition-[border-color,box-shadow] duration-200 ease-calm;
+  }
+  .field:focus {
+    box-shadow: 0 0 0 3px rgb(var(--c-pine) / 0.14);
   }
   .reading {
     line-height: var(--reading-leading, 1.7);
@@ -127,6 +204,15 @@
   */
   .panel {
     @apply relative bg-surface border border-line rounded-card;
+    box-shadow: var(--edge), var(--shadow-rest);
+  }
+
+  /* Things that genuinely float above the page: the guide, the friction sheet,
+     the reading menu. Named rather than reaching for Tailwind's generic grey
+     shadows, which sit wrong under a green-tinted paper and are identical in
+     both themes. */
+  .floating {
+    box-shadow: var(--edge), var(--shadow-float) !important;
   }
   .panel-legend {
     @apply absolute -top-[0.5rem] left-4 px-2 bg-surface eyebrow;
@@ -199,11 +285,32 @@
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+  /*
+    Buttons keep their colour and shadow response and lose the travel. Killing
+    the duration alone would leave the one-pixel hop happening instantly, which
+    is a jump rather than a movement — worse for somebody sensitive to motion
+    than the eased version it replaced.
+  */
+  .btn:hover, .btn:active {
+    transform: none !important;
+  }
 }
 
+/*
+  The lit step breathes.
+
+  Both frames now carry the panel's own elevation as well as the halo. Without
+  it the animation replaced the box-shadow outright and the one element that is
+  supposed to sit above everything else was the only one lying flat on the
+  page — for four and a half seconds at a time, on a loop.
+*/
 @keyframes lantern {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--c-lit) / 0.18); }
-  50%      { box-shadow: 0 0 0 6px rgb(var(--c-lit) / 0); }
+  0%, 100% {
+    box-shadow: var(--shadow-lift), 0 0 0 0 rgb(var(--c-lit) / 0.18);
+  }
+  50% {
+    box-shadow: var(--shadow-lift), 0 0 0 6px rgb(var(--c-lit) / 0);
+  }
 }
 .lantern { animation: lantern 4.5s ease-in-out infinite; }
 
