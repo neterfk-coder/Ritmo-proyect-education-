@@ -64,16 +64,31 @@ appears on their screen, not as a translation of the English one.`,
 export async function answerQuestion({ question, directives = [], lang = DEFAULT_LANG, hosted = false }) {
   const provider = env.companionProvider;
 
+  /*
+    The matched topic is found first and handed to the model as ground truth.
+
+    Without it the model only saw topic ids and their trigger words, and filled
+    the gaps with plausible-sounding invention: asked where to change the
+    stuck-moment options it answered "on the Intervenciones screen", which does
+    not exist and never did. A student then goes looking for it, does not find
+    it, and concludes they are the problem — the one failure mode this guide is
+    supposed to remove rather than create.
+
+    The curated answers are already written, already correct, and already
+    bilingual. The model's job is to phrase the right one for the question
+    actually asked, not to remember the product.
+  */
+  const topic = findTopic(question, lang);
+
   if (provider !== "offline") {
     try {
-      const text = await callProvider(provider, question, directives, lang, hosted);
-      if (text) return { text, source: provider };
+      const text = await callProvider(provider, question, directives, lang, hosted, topic);
+      if (text) return { text, source: provider, topic: topic?.id ?? null };
     } catch (err) {
       console.warn(`companion fell back to the offline guide: ${err.message}`);
     }
   }
 
-  const topic = findTopic(question, lang);
   return {
     text: topic ? answerFor(topic, lang, hosted) : fallbackFor(lang),
     source: "offline",
@@ -94,11 +109,23 @@ const PLACEMENT = {
     "This copy is hosted on a website: the student cannot restart servers or run commands, so never suggest npm, localhost or terminal commands. For loading problems suggest a hard refresh and trying again shortly. Data lives in a database on the server, and the privacy page explains what that means.",
 };
 
-function callProvider(provider, question, directives, lang, hosted) {
+function callProvider(provider, question, directives, lang, hosted, topic) {
   // The student's own rules apply here too. A student who wrote "short
   // sentences, I lose long ones halfway through" meant it for every sentence
   // this software produces, not only the ones about their homework.
-  const base = `${SYSTEM}\n\n${hosted ? PLACEMENT.hosted : PLACEMENT.local}\n\n${LANGUAGE_RULE[lang] ?? LANGUAGE_RULE.en}`;
+  // The verified answer for whatever the question matched, quoted at the model
+  // so button and page names come from the product rather than from guesswork.
+  const grounding = topic
+    ? `\n\nThis is the verified answer to this question, taken from the guide.
+Every page name, button label and instruction in it is correct. Rephrase it to
+answer what was actually asked — shorten it, or use only the relevant part —
+but do not contradict it and do not name any screen, button or feature it does
+not mention:\n\n"""\n${answerFor(topic, lang, hosted)}\n"""`
+    : `\n\nNothing in the guide matched this question closely. Say you are not
+sure which part it is about and name two or three things you can help with.
+Do not guess at page or button names.`;
+
+  const base = `${SYSTEM}\n\n${hosted ? PLACEMENT.hosted : PLACEMENT.local}\n\n${LANGUAGE_RULE[lang] ?? LANGUAGE_RULE.en}${grounding}`;
   const system = directives.length
     ? `${base}\n\nThis student wrote these rules for you. They override the above:\n${directives
         .map((d) => `- ${d}`)
