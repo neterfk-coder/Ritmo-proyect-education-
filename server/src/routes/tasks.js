@@ -204,14 +204,23 @@ tasks.post(
     const step = await db.microStep.findUnique({ where: { id: req.params.stepId } });
     if (!step) throw new ApiError(404, "That step is not here.");
 
+    const text = firstClause(step.text);
+    const shorter = text.length < step.text.trim().length;
+
+    // The estimate only halves if the work actually got smaller. It used to
+    // halve unconditionally, so a step the old English-only splitter could not
+    // cut came back word for word with "about 1 min" over it instead of two —
+    // the card reported progress that had not happened.
     const updated = await db.microStep.update({
       where: { id: step.id },
       data: {
-        text: firstClause(step.text),
-        estimatedSeconds: Math.max(30, Math.round(step.estimatedSeconds / 2)),
+        text,
+        estimatedSeconds: shorter
+          ? Math.max(30, Math.round(step.estimatedSeconds / 2))
+          : step.estimatedSeconds,
       },
     });
-    res.json(updated);
+    res.json({ ...updated, shorter });
   })
 );
 
@@ -255,15 +264,96 @@ tasks.patch(
  * "too big" has to visibly change the step — a shrink that returns the same
  * words reads as the button being broken.
  */
+/*
+  Cuts a step back to its first instruction.
+
+  The connective list used to be English only, so on a Spanish step it found
+  nothing to cut and handed the text back unchanged — six of seven realistic
+  Spanish steps came back identical. The estimate halved anyway, so the card
+  said "about 1 min" over the same sentence and the press looked like it had
+  worked. This is the intervention most students take when they stall, pressed
+  at the worst moment they will have all evening, and in Spanish it did nothing
+  most of the time.
+
+  Three passes, each only used if the one before left it too long:
+
+    1. first sentence
+    2. first clause, splitting on connectives in both languages
+    3. a hard cut at a word boundary
+
+  The third exists so this can always shorten something. A step that resists
+  every rule is exactly the step somebody is stuck on, and "no" is the least
+  useful answer available at that moment.
+*/
+const CONNECTIVES = new RegExp(
+  [
+    // English
+    " and ", " then ", " so that ", " before ", " after ", " that ", " which ",
+    " until ", " while ", " with ", " using ",
+    // Spanish. `y`/`e` and `o`/`u` alternate before i- and o- sounds, so both
+    // spellings of each are here.
+    " y ", " e ", " o ", " u ", " luego ", " despues ", " después ",
+    " antes de ", " para ", " porque ", " que ", " hasta ", " mientras ",
+    " cuando ", " ademas ", " además ", " con ", " usando ", " sobre ",
+  ].join("|"),
+  "i"
+);
+
+/** Enough to still be an instruction rather than a fragment. */
+const FLOOR = 12;
+
+/*
+  Words a sentence cannot end on.
+
+  The hard cut lands wherever the character count says, which produced
+  "Subraya todas las palabras clave del." — grammatical debris that reads as a
+  bug rather than as a shorter instruction. Trailing function words are removed
+  until the last word can carry an ending.
+*/
+const DANGLING = new Set([
+  // Spanish
+  "de", "del", "al", "a", "en", "con", "por", "para", "y", "e", "o", "u",
+  "que", "el", "la", "los", "las", "un", "una", "unos", "unas", "su", "sus",
+  "mi", "mis", "tu", "tus", "lo", "sobre", "desde", "hasta", "como",
+  // English
+  "the", "a", "an", "of", "in", "on", "to", "for", "with", "and", "or",
+  "that", "at", "from", "by", "into", "about", "as",
+]);
+
+function trimDangling(text) {
+  const words = text.split(/\s+/);
+  while (words.length > 2 && DANGLING.has(words[words.length - 1].toLowerCase())) {
+    words.pop();
+  }
+  return words.join(" ");
+}
+
 function firstClause(text) {
-  const sentence = text.split(/(?<=[.!?])\s+/)[0].trim();
-  const base = sentence.length < text.trim().length ? sentence : text.trim();
-  const clause = base
-    .replace(/[.!?]+$/, "")
-    .split(/,| and | then | so that | before | after | that | which | until | while /i)[0]
-    .trim();
-  const shortest = clause.length >= 12 ? clause : base.replace(/[.!?]+$/, "");
-  return /[.!?]$/.test(shortest) ? shortest : `${shortest}.`;
+  const full = text.trim().replace(/[.!?]+$/, "");
+
+  const sentence = full.split(/(?<=[.!?])\s+/)[0].trim().replace(/[.!?]+$/, "");
+  let out = sentence.length >= FLOOR ? sentence : full;
+
+  if (out.length > FLOOR * 2) {
+    const clause = out.split(/,/)[0].trim();
+    if (clause.length >= FLOOR) out = clause;
+  }
+
+  if (out.length > FLOOR * 2) {
+    const piece = out.split(CONNECTIVES)[0].trim();
+    if (piece.length >= FLOOR) out = piece;
+  }
+
+  // Still long, or nothing above found a seam: cut at a word boundary rather
+  // than leave the student holding the same sentence twice.
+  if (out.length === full.length && full.length > 40) {
+    const cut = full.slice(0, Math.max(FLOOR, Math.round(full.length * 0.55)));
+    const word = cut.lastIndexOf(" ");
+    if (word >= FLOOR) out = cut.slice(0, word).trim();
+  }
+
+  out = trimDangling(out);
+  return /[.!?]$/.test(out) ? out : `${out}.`;
 }
 
 function shape(task) {
