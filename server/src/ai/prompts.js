@@ -144,15 +144,23 @@ shown and one line of caption. Concrete images only, no abstractions.`,
 sentence. Mark a line break wherever a listener would need a breath.`,
   };
 
-  // Long material gets reshaped; a short problem statement gets unpacked. The
-  // same instruction cannot serve both, and treating the second like the first
-  // is what produced outlines that said the same three things three times.
-  const thin = rawText.trim().length < 400;
+  /*
+    Long material gets reshaped; a short problem statement gets unpacked. The
+    same instruction cannot serve both, and treating the second like the first
+    is what produced outlines saying the same three things three times.
+
+    200 characters, not 400. The first attempt at this used 400 and swept in a
+    three-hundred-character assignment brief with real content, which then came
+    back as explanatory prose with no panels in it at all — the unpacking
+    instruction had quietly overridden the shape. A genuine one-line problem is
+    well under two hundred.
+  */
+  const thin = rawText.trim().length < 200;
 
   const job = thin
     ? `This is short — a problem statement or a brief instruction rather than a
 body of material. Reshaping it alone would just permute the same few words, so
-your job here is to unpack it instead:
+what goes into the shape is an unpacking of it:
 
 - name what you are given, separately from what you are asked for
 - say what each technical term in it actually means, in plain words
@@ -170,13 +178,18 @@ not, and there is a separate place in this product for the worked solution.`
 away difficulty: if an idea is hard, it stays hard, it just changes shape.
 Never restate the same point twice in a different arrangement.`;
 
+  // The shape is stated last as well as first, because it is the instruction
+  // that must survive: an unpacking that arrives as prose when six panels were
+  // asked for has answered a question nobody put.
   return `Rewrite the material below in this shape:
 
 ${shapes[format] ?? shapes.skeleton}
 
 ${job}
 
-Return only the rewritten text.
+The shape above is not optional. Whatever you put in it, it comes out in that
+form — six panels stay six panels, an outline stays an outline, a script stays
+a script. Return only the rewritten text, in the shape asked for.
 
 <material>
 ${rawText}
