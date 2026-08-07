@@ -130,10 +130,11 @@ Rules for steps:
 export function reformatPrompt(rawText, format) {
   const shapes = {
     skeleton: `A bare structural outline. Short lines. Nesting no deeper than two
-levels. Strip every sentence that does not carry information.`,
-    dialogue: `A conversation between two people working the problem out loud.
-One asks the questions a confused reader would actually ask. The other answers
-plainly. No narrator, no stage directions.`,
+levels. Every line carries something the line above it did not.`,
+    dialogue: `A conversation between two people working it out loud. One asks
+the questions a confused reader would actually ask — including the ones they
+would be embarrassed to ask. The other answers plainly. No narrator, no stage
+directions.`,
     map: `A spatial layout in text. Name the regions of the idea and what sits
 inside each one, and state which regions connect and why. Describe position and
 containment, not sequence.`,
@@ -143,12 +144,39 @@ shown and one line of caption. Concrete images only, no abstractions.`,
 sentence. Mark a line break wherever a listener would need a breath.`,
   };
 
+  // Long material gets reshaped; a short problem statement gets unpacked. The
+  // same instruction cannot serve both, and treating the second like the first
+  // is what produced outlines that said the same three things three times.
+  const thin = rawText.trim().length < 400;
+
+  const job = thin
+    ? `This is short — a problem statement or a brief instruction rather than a
+body of material. Reshaping it alone would just permute the same few words, so
+your job here is to unpack it instead:
+
+- name what you are given, separately from what you are asked for
+- say what each technical term in it actually means, in plain words
+- make the relationship between the parts explicit
+- state anything the wording assumes the reader already knows
+
+Never repeat a fact you have already stated in a different arrangement. If you
+find yourself with nothing new to add, stop — a short honest answer is better
+than a padded one, and padding is what makes a student stop trusting this.
+
+Do NOT solve it. Do not compute the answer, choose the numbers, or write the
+thing being asked for. Explaining what the question means is help; doing it is
+not, and there is a separate place in this product for the worked solution.`
+    : `Keep every fact. Do not add facts about the subject. Do not summarise
+away difficulty: if an idea is hard, it stays hard, it just changes shape.
+Never restate the same point twice in a different arrangement.`;
+
   return `Rewrite the material below in this shape:
 
 ${shapes[format] ?? shapes.skeleton}
 
-Keep every fact. Do not add facts. Do not summarise away difficulty: if an idea
-is hard, it stays hard, it just changes shape. Return only the rewritten text.
+${job}
+
+Return only the rewritten text.
 
 <material>
 ${rawText}
