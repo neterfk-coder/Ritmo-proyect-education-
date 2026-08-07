@@ -33,12 +33,44 @@ interface Particle {
   span: number;
 }
 
-export function Backdrop({ enabled = true }: { enabled?: boolean }) {
+/**
+ * How much of itself the field is allowed to show.
+ *
+ * "calm" is what sits behind the workspace, and its restraint is the whole
+ * point there: exactly one element on that screen carries attention, and it is
+ * the lit step. A field competing with it would undo the thing the product is
+ * for.
+ *
+ * "full" is the front door, where there is no step to protect and the page's
+ * job is to be worth looking at. The same near-invisibility that is correct
+ * behind a task reads as nothing at all on a landing page — the animation was
+ * running the whole time at four percent opacity and nobody could see it.
+ *
+ * Only ink strength, stroke weight and trail length change. The motion itself
+ * is identical, so the two are the same field seen at two exposures rather
+ * than two different effects.
+ */
+export type BackdropIntensity = "calm" | "full";
+
+const EXPOSURE = {
+  calm: { base: 0.045, ceiling: 0.2, weight: 0.9, wash: 0.055 },
+  full: { base: 0.115, ceiling: 0.3, weight: 1.25, wash: 0.032 },
+} as const;
+
+export function Backdrop({
+  enabled = true,
+  intensity = "calm",
+}: {
+  enabled?: boolean;
+  intensity?: BackdropIntensity;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const el = canvas.current;
     if (!el || !enabled) return;
+
+    const exposure = EXPOSURE[intensity];
 
     const ctx = el.getContext("2d", { alpha: true });
     if (!ctx) return;
@@ -142,7 +174,7 @@ export function Backdrop({ enabled = true }: { enabled?: boolean }) {
       // Trails: instead of clearing, lay down a thin wash of the page colour
       // so older strokes fade out over about a second. While the student is
       // writing the wash thins, and the trails hold on longer.
-      const wash = advance ? 0.055 - energy * 0.022 : 1;
+      const wash = advance ? exposure.wash - energy * 0.022 : 1;
       ctx.fillStyle = `rgba(${ground[0]}, ${ground[1]}, ${ground[2]}, ${wash})`;
       ctx.fillRect(0, 0, width, height);
 
@@ -199,14 +231,17 @@ export function Backdrop({ enabled = true }: { enabled?: boolean }) {
         const speed = Math.hypot(p.vx, p.vy);
         // Faster strokes read slightly stronger, which gives the field depth
         // without ever getting loud. Writing lifts the whole field's ceiling.
-        const alpha = Math.min(0.2 + energy * 0.16, 0.045 + speed * 0.05 + energy * 0.11);
+        const alpha = Math.min(
+          exposure.ceiling + energy * 0.16,
+          exposure.base + speed * 0.05 + energy * 0.11
+        );
 
         const wrapped =
           p.x < -20 || p.x > width + 20 || p.y < -20 || p.y > height + 20;
 
         if (!wrapped) {
           ctx.strokeStyle = `rgba(${ink[0]}, ${ink[1]}, ${ink[2]}, ${alpha})`;
-          ctx.lineWidth = 0.9 + speed * 0.16 + energy * 0.45;
+          ctx.lineWidth = exposure.weight + speed * 0.16 + energy * 0.45;
           ctx.beginPath();
           ctx.moveTo(p.px, p.py);
           ctx.lineTo(p.x, p.y);
@@ -354,7 +389,7 @@ export function Backdrop({ enabled = true }: { enabled?: boolean }) {
       document.removeEventListener("visibilitychange", onVisibility);
       themeWatcher.disconnect();
     };
-  }, [enabled]);
+  }, [enabled, intensity]);
 
   if (!enabled) return null;
 

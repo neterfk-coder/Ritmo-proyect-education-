@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Backdrop } from "./components/Backdrop";
 import { Owl } from "./components/Owl";
 import { Shell } from "./components/Shell";
@@ -14,10 +14,23 @@ import { useT } from "./lib/i18n";
 export default function App() {
   const { student, loading } = useStudent();
   const t = useT();
+  const { pathname } = useLocation();
 
-  // The field is on before there is an account to store a preference on, and
-  // takes the student's own setting the moment there is one.
-  const backdrop = <Backdrop enabled={student?.backdropOn ?? true} />;
+  /*
+    The field is on before there is an account to store a preference on, and
+    takes the student's own setting the moment there is one.
+
+    The front door gets it at full exposure. There is no lit step to protect
+    out there, and the restraint that is correct behind a task had made the
+    animation effectively invisible on the one page whose job is to be looked
+    at — it was running the whole time at four percent opacity.
+  */
+  const backdrop = (
+    <Backdrop
+      enabled={student?.backdropOn ?? true}
+      intensity={pathname === "/" ? "full" : "calm"}
+    />
+  );
 
   if (loading) {
     return (
