@@ -77,16 +77,45 @@ Return only JSON, no prose around it, matching this shape:
 {
   "title": "short name for this task, under 8 words",
   "subject": "school subject or null",
-  "hiddenVerb": "what the assignment verb actually asks you to physically produce",
+  "hiddenVerb": "SEE THE RULE BELOW — never a single verb",
   "plainAsk": "one sentence, second person, what you are being asked to do",
   "definitionOfDone": "one sentence describing the state in which you can stop",
   "deliverables": ["each separate thing that must exist when you are finished"],
-  "trapWarnings": ["expectations the assignment assumes but never states"],
+  "trapWarnings": ["SEE THE RULE BELOW — each must be specific enough to act on"],
   "estimatedMinutes": 20,
   "steps": [
     { "text": "an action, not a goal", "estimatedSeconds": 120 }
   ]
 }
+
+Rule for hiddenVerb. This is the single most important field and the easiest to
+get wrong. It must be a phrase describing the physical thing to produce and the
+shape it takes. A bare verb is a failed answer, because it repeats the word the
+student was already stuck on instead of decoding it.
+
+  BAD:  "write"                      — this is the word they already read
+  BAD:  "write a commentary"         — still their own wording, just longer
+  GOOD: "write several paragraphs that put two or more positions next to each
+         other, and say which you find stronger"
+
+  BAD:  "analyse"
+  GOOD: "break the thing into parts and say what each part does"
+
+Read it back and ask: if the student already knew this much, would they still be
+stuck? If yes, it is not decoded enough.
+
+Rule for trapWarnings. Each one names something the assignment assumes and never
+says, and each must be concrete enough to act on tonight. A warning the student
+cannot do anything with is worse than none, because it adds worry without
+adding direction.
+
+  BAD:  "the response should be a reasonable length"
+  GOOD: "No length is given. One page is the usual expectation unless your
+         teacher said otherwise."
+
+  BAD:  "you should support your points"
+  GOOD: "Quoting the text is expected here even though it does not say so —
+         at least one quotation per point you make."
 
 Rules for steps:
 - The first step must be doable in under 90 seconds and must require the
