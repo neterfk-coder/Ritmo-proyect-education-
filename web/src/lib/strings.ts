@@ -479,6 +479,19 @@ const S = {
   "profile.remove": { en: "remove", es: "quitar" },
   "profile.addRule": { en: "Add a rule", es: "Añadir una regla" },
   "profile.add": { en: "Add", es: "Añadir" },
+  "profile.whenStuck": {
+    en: "What appears when you get stuck",
+    es: "Qué aparece cuando te atascas",
+  },
+  "profile.whenStuckNote": {
+    en: "You chose these during setup, before you needed them. Change them here whenever the choice stops fitting — deciding what helps is much harder in the moment than it is now.",
+    es: "Elegiste esto al configurar, antes de necesitarlo. Cámbialo aquí cuando la elección deje de encajar: decidir qué ayuda es mucho más difícil en el momento que ahora.",
+  },
+  "profile.whenStuckNone": {
+    en: "Nothing is selected, so nothing will interrupt you. That is a valid choice and it stays until you change it.",
+    es: "No hay nada marcado, así que nada te interrumpirá. Es una elección válida y se mantiene hasta que la cambies.",
+  },
+
   "profile.measured": { en: "Measured", es: "Medido" },
   "profile.fromSession": { en: "from {n} session", es: "de {n} sesión" },
   "profile.fromSessions": { en: "from {n} sessions", es: "de {n} sesiones" },

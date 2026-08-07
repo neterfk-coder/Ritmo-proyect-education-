@@ -19,6 +19,8 @@ interface Ctx {
   signOut: () => void;
   setStudent: (s: Student) => void;
   patch: (patch: Partial<Student>) => Promise<void>;
+  /** Turn one of the stuck-moment options on or off. */
+  setIntervention: (key: string, enabled: boolean) => Promise<void>;
   erase: () => Promise<void>;
 }
 
@@ -86,6 +88,26 @@ export function StudentProvider({ children }: { children: ReactNode }) {
     [student]
   );
 
+  /**
+   * Interventions live in their own table, so they need their own call rather
+   * than riding along on `patch`. Optimistic for the same reason as `patch`:
+   * a checkbox that waits for a round trip before moving reads as broken.
+   */
+  const setIntervention = useCallback(
+    async (key: string, enabled: boolean) => {
+      if (!student) return;
+      const previous = student.interventions;
+      const next = previous.map((i) => (i.key === key ? { ...i, enabled } : i));
+      setStudent({ ...student, interventions: next });
+      try {
+        await api.setIntervention(student.id, key, enabled);
+      } catch {
+        setStudent({ ...student, interventions: previous });
+      }
+    },
+    [student]
+  );
+
   const erase = useCallback(async () => {
     if (!student) return;
     await api.deleteStudent(student.id);
@@ -102,13 +124,14 @@ export function StudentProvider({ children }: { children: ReactNode }) {
       signIn,
       signOut,
       patch,
+      setIntervention,
       erase,
       setStudent: (s: Student) => {
         localStorage.setItem(KEY, s.id);
         setStudent(s);
       },
     }),
-    [student, loading, aiMode, hosted, signIn, signOut, patch, erase]
+    [student, loading, aiMode, hosted, signIn, signOut, patch, setIntervention, erase]
   );
 
   return <StudentContext.Provider value={value}>{children}</StudentContext.Provider>;

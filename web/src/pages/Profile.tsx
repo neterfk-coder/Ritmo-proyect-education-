@@ -4,7 +4,7 @@ import { useStudent } from "../state/StudentContext";
 import { useDocumentTitle } from "../lib/title";
 import { useT } from "../lib/i18n";
 import type { T } from "../lib/i18n";
-import { formatName } from "../lib/labels";
+import { formatName, interventionLabel } from "../lib/labels";
 import type { Insight, LearningProfile } from "../lib/types";
 
 /**
@@ -16,7 +16,7 @@ import type { Insight, LearningProfile } from "../lib/types";
  * is the difference between a homework app and a self-advocacy tool.
  */
 export function Profile() {
-  const { student } = useStudent();
+  const { student, setIntervention } = useStudent();
   const t = useT();
   const [profile, setProfile] = useState<LearningProfile | null>(null);
   const [insights, setInsights] = useState<Insight[]>([]);
@@ -145,6 +145,49 @@ export function Profile() {
             {t("profile.add")}
           </button>
         </div>
+      </section>
+
+      {/*
+        The stuck-moment options, editable after the fact.
+
+        The guide has always told students they could change these "from your
+        account settings". There were no such settings — the endpoint and the
+        API method existed, and nothing on any screen called them. It sits here
+        rather than in the Reading panel because this is the page about how the
+        student works, and "what I want when I stall" is that, not a display
+        preference.
+
+        It matters more now than it did: the withdrawn dictation option means
+        some accounts were left with a shorter list than they chose, and this
+        is where they can see and fix what they actually have.
+      */}
+      <section className={`space-y-5 ${exported ? "no-print" : ""}`}>
+        <h2 className="eyebrow">{t("profile.whenStuck")}</h2>
+        <p className="text-muted reading max-w-reading text-sm">
+          {t("profile.whenStuckNote")}
+        </p>
+        <ul className="space-y-2 max-w-reading">
+          {student.interventions.map((option) => (
+            <li key={option.key}>
+              <label className="flex items-start gap-3 text-[0.9375rem] reading cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={option.enabled}
+                  onChange={(e) => setIntervention(option.key, e.target.checked)}
+                  className="mt-1.5 accent-pine h-4 w-4 shrink-0"
+                />
+                <span className="group-hover:text-ink transition-colors">
+                  {interventionLabel(t, option.key, option.label)}
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        {student.interventions.every((i) => !i.enabled) && (
+          <p className="text-xs text-faint reading max-w-reading">
+            {t("profile.whenStuckNone")}
+          </p>
+        )}
       </section>
 
       {profile && (

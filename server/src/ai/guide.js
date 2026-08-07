@@ -145,8 +145,8 @@ export const TOPICS = [
       es: ["opciones cuando me atasco", "cambiar las opciones", "qué aparece cuando me atasco", "menú de ayuda", "opciones de ayuda"],
     },
     answer: {
-      en: "The options in that panel are the ones you chose during setup, before you needed them — deciding what helps is much harder in the moment.\n\nYou can change which ones are offered from your account settings, and \"No, I am fine\" is always there as a first-class choice.",
-      es: "Las opciones de ese panel son las que elegiste al configurar, antes de necesitarlas: decidir qué ayuda es mucho más difícil en el momento.\n\nPuedes cambiar cuáles se ofrecen desde los ajustes de tu cuenta, y \"No, estoy bien\" siempre está ahí como una opción de primera.",
+      en: "The options in that panel are the ones you chose during setup, before you needed them — deciding what helps is much harder in the moment.\n\nYou can change which ones are offered on \"How I work\", under \"What appears when you get stuck\". Turning all of them off is allowed, and means nothing will interrupt you. \"No, I am fine\" is always there as a first-class choice.",
+      es: "Las opciones de ese panel son las que elegiste al configurar, antes de necesitarlas: decidir qué ayuda es mucho más difícil en el momento.\n\nPuedes cambiar cuáles se ofrecen en \"Cómo trabajo\", en \"Qué aparece cuando te atascas\". Apagarlas todas está permitido, y significa que nada te interrumpirá. \"No, estoy bien\" siempre está ahí como una opción de primera.",
     },
   },
   {
