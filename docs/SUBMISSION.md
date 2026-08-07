@@ -115,6 +115,8 @@ that names its own limits before they have to find them.]`
 
 ## Links
 
-- Repository: `[FILL]`
+- Repository: https://github.com/neterfk-coder/Ritmo-proyect-education-
+- Live: https://ritmo-smoky.vercel.app — opens on a landing page that runs the
+  decompiler on a real assignment, then "go straight in" needs no account
 - Demo video: `[FILL]`
 - Track: AI for K–12 Learning
