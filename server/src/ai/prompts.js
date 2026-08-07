@@ -134,12 +134,31 @@ levels. Every line carries something the line above it did not.`,
     dialogue: `A conversation between two people working it out loud. One asks
 the questions a confused reader would actually ask — including the ones they
 would be embarrassed to ask. The other answers plainly. No narrator, no stage
-directions.`,
-    map: `A spatial layout in text. Name the regions of the idea and what sits
-inside each one, and state which regions connect and why. Describe position and
-containment, not sequence.`,
-    comic: `Six panels. For each panel give a one-line description of what is
-shown and one line of caption. Concrete images only, no abstractions.`,
+directions.
+
+Start every line with the speaker, "A." or "B.", and alternate. A reader who
+cannot tell who is talking is reading a wall, and that is the reader this
+shape exists for.`,
+    map: `A spatial layout in text, not a description of one. Put each region
+on its own line in capitals, and indent what sits inside it beneath. Say which
+regions connect and why. Position and containment, never sequence.
+
+Like this, and not as prose about regions:
+
+CENTRE — the thing everything else hangs off
+  the claim itself
+AROUND IT — what holds it up
+  · first support
+  · second support
+EDGES — what you can come back to`,
+    comic: `Six panels, numbered. For each panel give a one-line description of
+what is shown and one line of caption, both labelled:
+
+PANEL 1
+  Shows: one concrete image
+  Caption: the line that goes with it
+
+Concrete images only, no abstractions.`,
     audio: `A script to be read aloud. Sentences under 20 words. One idea per
 sentence. Mark a line break wherever a listener would need a breath.`,
   };
