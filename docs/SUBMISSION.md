@@ -39,22 +39,58 @@ anyone who is not the student.
 
 ## How AI is used meaningfully
 
-Three distinct jobs, not one chatbot:
+Four distinct jobs, not one chatbot:
 
 1. **Decompiling.** The model extracts the hidden verb behind the assignment
    wording, the discrete deliverables, the unstated expectations, and a literal
    definition of done. It then produces micro-steps under one hard constraint:
-   the first step must require zero decisions.
+   the first step must require zero decisions. Input can be pasted, dictated,
+   or a PDF — read on the device, so the file itself never leaves it.
 2. **Format transformation.** The same content is re-rendered as skeleton,
    dialogue, spatial map, six panels, or an ear-first script. Nothing is
    dropped between formats — if an idea is hard it stays hard, it changes shape.
 3. **Profile synthesis.** Session data becomes plain-language observations with
    evidence attached, written in second person, ready to hand to a teacher.
+4. **The worked solution, on request.** Opened deliberately, after the steps,
+   and nothing is generated until it is — an answer produced alongside the steps
+   and merely folded away would be one right-click from being read.
 
-The part we would point at: **the student's own sentences become the model's
-system prompt.** Rules like "never tell me how many steps are left" and "do not
-encourage me" are placed above everything we wrote, on every call, and the
-student can read and edit each one. There is no hidden second version.
+### What is actually novel here
+
+**The direction of configuration is reversed.** Almost every AI tool in
+education configures the model *about* the student — a reading level, a
+diagnosis, a difficulty band inferred and applied to them. Here the student
+writes the model's system prompt. "Never tell me how many steps are left." "Do
+not encourage me." Those sentences sit above everything we wrote, on every
+call, and the student can read, edit and delete each one. There is no hidden
+second version, and the page that holds them says so. That is not a settings
+panel with better copy; it is the opposite relationship.
+
+**The model's job is to expose a contract, not to answer.** Most study tools
+summarise or solve. This one decompiles the *expectations* — that "discuss"
+means "write several paragraphs putting two or more positions next to each
+other", and that you may stop when two named causes and their sources are on
+the page. The unstated layer is the actual barrier for the students this is
+for, and it is the layer nothing else names.
+
+**Refusal is designed in, and enforced per task type.** The guide answers about
+the tool and declines the homework. The solution engine decides whether the
+task has a determinate answer — an equation gets worked line by line; an essay
+gets the technique demonstrated on a different example and a plain statement of
+why. An AI study tool that will not write your essay is an unusual position and
+a deliberate one.
+
+**It degrades to fully working, not to broken.** With no key the same code
+paths run a deterministic engine and every feature stays usable, offline and
+free. That is an equity property before it is a technical one: a student
+without a paid API key gets the whole product, not a teaser. Model failures
+fall back rather than surfacing as errors.
+
+**The whole of it is bilingual, including the parts the model writes.** English
+and Spanish for the interface, the decomposed steps, the guide, the
+observations, and the page handed to a teacher — plus voice selection for
+read-aloud and dictation. A toggle that repaints the chrome and leaves the
+generated content in English is a translated menu bar, not a bilingual tool.
 
 ---
 
