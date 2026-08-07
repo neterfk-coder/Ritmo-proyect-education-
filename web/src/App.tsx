@@ -3,6 +3,7 @@ import { Backdrop } from "./components/Backdrop";
 import { Owl } from "./components/Owl";
 import { Shell } from "./components/Shell";
 import { Auth } from "./pages/Auth";
+import { Landing } from "./pages/Landing";
 import { Onboarding } from "./pages/Onboarding";
 import { Workspace } from "./pages/Workspace";
 import { Profile } from "./pages/Profile";
@@ -46,18 +47,20 @@ export default function App() {
         {backdrop}
         <div className="relative z-10">
           {/*
-            The account screens are the front door, and /setup is the door
-            beside it. Until the account layer is connected to a server, the
-            local flow has to stay reachable — a login box that cannot log
-            anybody in must not be the only way in.
+            The landing page is the front door; the account screens are one
+            click through it, and /setup is the door beside them. Until the
+            account layer is connected to a server, the local flow has to stay
+            reachable — a login box that cannot log anybody in must not be the
+            only way in, and must not be the first thing anyone meets either.
           */}
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/signin" element={<Auth mode="signin" />} />
             <Route path="/register" element={<Auth mode="register" />} />
             <Route path="/forgot" element={<Auth mode="forgot" />} />
             <Route path="/reset" element={<Auth mode="reset" />} />
             <Route path="/setup" element={<Onboarding />} />
-            <Route path="*" element={<Navigate to="/signin" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </>

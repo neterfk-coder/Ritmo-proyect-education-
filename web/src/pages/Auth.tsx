@@ -68,7 +68,12 @@ export function Auth({ mode }: { mode: Mode }) {
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [guestBusy, setGuestBusy] = useState(false);
-  const [askingName, setAskingName] = useState(false);
+  // Arriving from the landing page's "go straight in" lands on the one
+  // optional question rather than on the sign-in form with the guest button
+  // somewhere below it. Pressing a button that says "no account" and then
+  // being shown a password field is the kind of small betrayal that costs
+  // more trust than it saves clicks.
+  const [askingName, setAskingName] = useState(() => params.get("guest") === "1");
   const [guestName, setGuestName] = useState("");
   const [done, setDone] = useState<null | "sent" | "in" | "reset">(null);
 

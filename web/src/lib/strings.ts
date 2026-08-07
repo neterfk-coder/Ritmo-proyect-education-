@@ -686,6 +686,71 @@ const S = {
     es: "No me digas que algo es fácil.",
   },
 
+  /* ---------- the front door ---------- */
+  "landing.tagline": { en: "One step, lit", es: "Un paso, encendido" },
+  "landing.title": {
+    en: "The hard part is not the work. It is knowing where it starts.",
+    es: "La parte difícil no es el trabajo. Es saber por dónde empieza.",
+  },
+  "landing.blurb": {
+    en: "Ritmo takes an assignment, works out what it is actually asking for, and hands back one action small enough to do without deciding anything. Built for neurodivergent students, by asking them.",
+    es: "Ritmo coge una tarea, averigua qué está pidiendo en realidad, y devuelve una acción lo bastante pequeña como para hacerla sin decidir nada. Hecho para estudiantes neurodivergentes, preguntándoles a ellos.",
+  },
+  "landing.enter": { en: "Go straight in, no account", es: "Entrar directamente, sin cuenta" },
+  "landing.haveAccount": { en: "I have an account", es: "Ya tengo cuenta" },
+  "landing.noSignup": {
+    en: "Nothing to install, nothing to pay for, no sign-up.",
+    es: "Nada que instalar, nada que pagar, sin registro.",
+  },
+
+  /* the demonstration — the product performing rather than described */
+  "landing.demoLegend": { en: "What it does", es: "Qué hace" },
+  "landing.demoReplay": { en: "Run it again", es: "Verlo otra vez" },
+  "landing.demoPasted": { en: "What the teacher wrote", es: "Lo que escribió el profesor" },
+  "landing.demoAssignment": {
+    en: "Discuss the causes of the Cuban Missile Crisis. Refer to at least two sources from the module reading list. Due Friday.",
+    es: "Comenta las causas de la crisis de los misiles de Cuba. Usa al menos dos fuentes de la lista de lectura del módulo. Entrega el viernes.",
+  },
+  "landing.demoWorking": {
+    en: "Working out what this asks",
+    es: "Averiguando qué pide esto",
+  },
+  "landing.demoVerbLabel": { en: "“Discuss” actually means", es: "“Comenta” significa en realidad" },
+  "landing.demoVerb": {
+    en: "write several paragraphs that put two or more positions next to each other",
+    es: "escribir varios párrafos que pongan dos o más posturas una al lado de la otra",
+  },
+  "landing.demoDone": {
+    en: "You can stop when there are at least two named causes on the page, each with a source next to it, and a last line saying which you think mattered more.",
+    es: "Puedes parar cuando haya al menos dos causas nombradas en la página, cada una con su fuente al lado, y una última línea diciendo cuál crees que pesó más.",
+  },
+  "landing.demoStep": {
+    en: "Open a blank page and copy the question onto the top line, word for word.",
+    es: "Abre una página en blanco y copia la pregunta en la primera línea, palabra por palabra.",
+  },
+  "landing.demoStepMeta": { en: "about 1 min", es: "cerca de 1 min" },
+  "landing.demoCaption": {
+    en: "Five more steps exist. You are not shown them, because seeing twelve at once is what makes people close the tab.",
+    es: "Existen cinco pasos más. No se te muestran, porque ver doce de golpe es lo que hace que la gente cierre la pestaña.",
+  },
+
+  /* three claims, each with the thing that backs it */
+  "landing.claim1": { en: "It never watches you", es: "Nunca te vigila" },
+  "landing.claim1Body": {
+    en: "No camera, no keystroke log. When you stall it notices from five numbers computed in your browser and thrown away after scoring — because being watched while struggling is what makes struggling worse.",
+    es: "Sin cámara, sin registro de teclas. Cuando te atascas lo nota por cinco números calculados en tu navegador y descartados tras puntuar, porque que te miren mientras te cuesta es lo que hace que cueste más.",
+  },
+  "landing.claim2": { en: "You write its instructions", es: "Tú escribes sus instrucciones" },
+  "landing.claim2Body": {
+    en: "“Never tell me how many steps are left.” “Do not encourage me.” Your sentences go above everything we wrote, every time the model runs. You can read and delete each one.",
+    es: "«No me digas nunca cuántos pasos quedan.» «No me animes.» Tus frases van por encima de todo lo que escribimos nosotros, cada vez que se ejecuta el modelo. Puedes leerlas y borrarlas una a una.",
+  },
+  "landing.claim3": { en: "It becomes your evidence", es: "Se convierte en tu evidencia" },
+  "landing.claim3Body": {
+    en: "What the sessions show turns into one page in your own voice, with the evidence attached, that you can hand to a teacher. That is the difference between a homework app and a self-advocacy tool.",
+    es: "Lo que muestran las sesiones se convierte en una página con tu propia voz, con la evidencia adjunta, que puedes darle a un profesor. Esa es la diferencia entre una app de deberes y una herramienta para defenderte.",
+  },
+
   /* ---------- accounts ---------- */
   "auth.tagline": { en: "One step, lit", es: "Un paso, encendido" },
   "auth.signin.eyebrow": { en: "Welcome back", es: "Bienvenido de nuevo" },
