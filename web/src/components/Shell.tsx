@@ -6,6 +6,7 @@ import { AccessibilityBar } from "./AccessibilityBar";
 import { Companion } from "./Companion";
 import { GuestStrip } from "./GuestStrip";
 import { LangToggle } from "./LangToggle";
+import { AccountMenu } from "./AccountMenu";
 
 const NAV: { to: string; label: Key }[] = [
   { to: "/work", label: "nav.work" },
@@ -70,7 +71,10 @@ export function Shell() {
             )}
             <LangToggle />
             <AccessibilityBar />
-            {student && <span className="text-sm text-muted hidden sm:inline">{student.alias}</span>}
+            {/* The name used to sit here as plain text — the one thing in the
+                header that looked like it should do something and did not.
+                Behind it were four fields locked since setup. */}
+            <AccountMenu />
           </div>
         </div>
       </header>

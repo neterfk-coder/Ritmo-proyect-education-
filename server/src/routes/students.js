@@ -74,9 +74,22 @@ students.get(
   })
 );
 
+/*
+  Zod strips unknown keys rather than rejecting them, so a field missing from
+  this list is not refused — it is silently dropped and the route answers 200
+  as though it saved. `ageBand` was missing, which meant the account menu could
+  offer a school stage, show it selected optimistically, and quietly revert.
+  A field that cannot be changed should say so; a field that pretends to change
+  is worse than one that is locked.
+
+  `defaultFormat` was `z.string()`, so any text at all was accepted and stored,
+  and the renderer would have fallen back to skeleton for ever without saying
+  why. It is now the same five values the interface offers.
+*/
 const patchSchema = z.object({
   alias: z.string().min(1).max(40).optional(),
-  defaultFormat: z.string().optional(),
+  ageBand: z.enum(["elementary", "middle", "high"]).optional(),
+  defaultFormat: z.enum(["skeleton", "dialogue", "map", "comic", "audio"]).optional(),
   readingTheme: z.enum(["calm", "dark", "contrast"]).optional(),
   readingTint: z.enum(["none", "amber", "rose", "mint", "slate"]).optional(),
   letterSpacing: z.number().min(0).max(0.2).optional(),

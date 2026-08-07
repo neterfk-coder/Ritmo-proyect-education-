@@ -54,6 +54,35 @@ const S = {
     es: "Nada sale de este dispositivo salvo que lo exportes.",
   },
 
+  /* ---------- account menu ---------- */
+  "account.open": { en: "Your account", es: "Tu cuenta" },
+  "account.guest": { en: "This browser only", es: "Solo en este navegador" },
+  "account.local": { en: "Signed in here", es: "Con sesión aquí" },
+  "account.copyId": { en: "Copy my account id", es: "Copiar el id de mi cuenta" },
+  "account.copied": { en: "Copied", es: "Copiado" },
+  "account.copiedNote": {
+    en: "Paste it somewhere you can find again. It is the only way back to this work from another browser.",
+    es: "Pégalo donde puedas volver a encontrarlo. Es la única forma de volver a este trabajo desde otro navegador.",
+  },
+  "account.name": { en: "What this calls you", es: "Cómo te llama esto" },
+  "account.startFormat": { en: "Tasks open as", es: "Las tareas se abren como" },
+  "account.band": { en: "School stage", es: "Etapa escolar" },
+  "account.about": { en: "What it knows about you", es: "Lo que sabe sobre ti" },
+  "account.aboutPlaceholder": {
+    en: "Optional. Nothing here is a diagnosis field.",
+    es: "Opcional. Esto no es una casilla de diagnóstico.",
+  },
+  "account.aboutNote": {
+    en: "Goes to the model with your rules. Empty is fine.",
+    es: "Va al modelo junto con tus reglas. Vacío está bien.",
+  },
+  "account.clear": { en: "clear", es: "borrar" },
+  "account.signOut": { en: "Sign out on this browser", es: "Cerrar sesión en este navegador" },
+  "account.signOutNote": {
+    en: "Nothing is deleted. Your id opens it again.",
+    es: "No se borra nada. Tu id lo vuelve a abrir.",
+  },
+
   /* ---------- language toggle ---------- */
   "lang.aria": { en: "Choose a language", es: "Elegir idioma" },
 
