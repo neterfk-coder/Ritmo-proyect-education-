@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { listen } from "../lib/speech";
-import { useT } from "../lib/i18n";
+import { useLang, useT } from "../lib/i18n";
+import { detectLanguage } from "../lib/detect";
 import { MAX_PDF_BYTES, PdfError, extractPdfText } from "../lib/pdf";
 import { PAGES_THAT_FIT, capacityOf } from "../lib/limits";
 import { Decompiling } from "./Decompiling";
@@ -18,7 +19,9 @@ export function TaskIntake({
   onSubmit, busy,
 }: { onSubmit: (text: string) => void; busy: boolean }) {
   const t = useT();
+  const { lang, setLang } = useLang();
   const [text, setText] = useState("");
+  const [dismissedOffer, setDismissedOffer] = useState(false);
   const [dictating, setDictating] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +30,23 @@ export function TaskIntake({
   const recognition = useRef<{ stop: () => void } | null>(null);
 
   const capacity = capacityOf(text);
+
+  /*
+    The assignment is in the other language.
+
+    The model reads both fluently and answers in whichever language the
+    interface is set to, so nothing here is broken — but a student whose
+    browser opened in English and who then pasted Spanish homework gets Spanish
+    work explained in English and no reason to suspect a switch exists.
+
+    Offered, never applied. The mismatch is frequently deliberate: somebody
+    studying English wants English help with a Spanish text, and somebody in a
+    Spanish class wants exactly the reverse. Switching their interface out from
+    under them because of one paste would be the tool overruling a choice it
+    cannot see the reason for.
+  */
+  const detected = detectLanguage(text);
+  const offerSwitch = !dismissedOffer && detected && detected.lang !== lang;
 
   const isPdf = (file: File) =>
     file.type === "application/pdf" || /\.pdf$/i.test(file.name);
@@ -230,6 +250,27 @@ export function TaskIntake({
           <span className="think-dot block h-1.5 w-1.5 rounded-full bg-lit" aria-hidden />
           {t("intake.listening")}
         </p>
+      )}
+
+      {/* Above the button, because it is about the thing the button is about
+          to do, and after it has run the choice has already been made. */}
+      {offerSwitch && detected && (
+        <div className="panel p-4 space-y-3 rise" role="status" aria-live="polite">
+          <p className="text-sm text-muted reading">
+            {t(detected.lang === "es" ? "intake.looksSpanish" : "intake.looksEnglish")}
+          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <button className="btn-quiet !py-1.5 !text-xs" onClick={() => setLang(detected.lang)}>
+              {t(detected.lang === "es" ? "intake.switchToSpanish" : "intake.switchToEnglish")}
+            </button>
+            <button
+              className="btn-bare !text-xs"
+              onClick={() => setDismissedOffer(true)}
+            >
+              {t("intake.keepLanguage")}
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-4">

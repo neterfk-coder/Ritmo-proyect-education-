@@ -410,6 +410,22 @@ const S = {
     en: "This browser has no dictation. Chrome and Edge do.",
     es: "Este navegador no tiene dictado. Chrome y Edge sí.",
   },
+  /* offered when the pasted assignment is not in the interface language */
+  "intake.looksSpanish": {
+    en: "This assignment looks like it is in Spanish. The steps and the explanations will come back in English unless you switch.",
+    es: "Esta tarea parece estar en español. Los pasos y las explicaciones volverán en inglés si no cambias.",
+  },
+  "intake.looksEnglish": {
+    en: "This assignment looks like it is in English. The steps and the explanations will come back in Spanish unless you switch.",
+    es: "Esta tarea parece estar en inglés. Los pasos y las explicaciones volverán en español si no cambias.",
+  },
+  "intake.switchToSpanish": { en: "Work on it in Spanish", es: "Trabajarla en español" },
+  "intake.switchToEnglish": { en: "Work on it in English", es: "Trabajarla en inglés" },
+  "intake.keepLanguage": {
+    en: "No, keep it as it is",
+    es: "No, déjalo como está",
+  },
+
   "intake.readingPdf": {
     en: "Reading the PDF. This happens on your device — the file itself is not sent anywhere.",
     es: "Leyendo el PDF. Esto pasa en tu dispositivo: el archivo en sí no se envía a ningún sitio.",
