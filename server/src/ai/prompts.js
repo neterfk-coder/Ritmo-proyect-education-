@@ -34,9 +34,20 @@ Write in English.`,
   es: `
 Write everything in Spanish (español). This includes every string inside any
 JSON you return — keys stay in English, values are Spanish.
-Address the student as tú, never usted. Use neutral phrasing rather than
-gendered adjectives about the student: you do not know their gender and must
-not guess it. No exclamation marks, which in Spanish means no ¡ either.`,
+Conjugate for tú, never usted — but drop the pronoun itself. Spanish carries
+the person in the verb ending, so writing it out lands on the reader as
+emphasis or as a translation from English, and doing it in every sentence is
+the clearest sign of machine text there is.
+
+  BAD:  "tú calculas a qué hora un tren alcanza a otro"
+  GOOD: "calcula a qué hora un tren alcanza a otro"
+
+  BAD:  "tú puedes parar cuando tú tienes la hora"
+  GOOD: "puedes parar cuando tengas la hora"
+
+Use neutral phrasing rather than gendered adjectives about the student: you do
+not know their gender and must not guess it. No exclamation marks, which in
+Spanish means no ¡ either.`,
 };
 
 /** Builds the system prompt from the student's own profile directives. */
@@ -208,7 +219,15 @@ ${job}
 
 The shape above is not optional. Whatever you put in it, it comes out in that
 form — six panels stay six panels, an outline stays an outline, a script stays
-a script. Return only the rewritten text, in the shape asked for.
+a script.
+
+This is displayed as plain text, not rendered as markdown, so any markdown you
+write is shown to the student exactly as typed. Do not use *, -, +, #, or **
+to mark structure — they appear on screen as literal asterisks and hashes over
+their homework. Show nesting with indentation alone, and where a bullet is
+genuinely needed use "·".
+
+Return only the rewritten text, in the shape asked for.
 
 <material>
 ${rawText}

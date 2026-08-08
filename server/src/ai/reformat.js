@@ -16,8 +16,9 @@ export const FORMATS = ["skeleton", "dialogue", "map", "comic", "audio"];
  *
  *   1  original
  *   2  short input is unpacked rather than permuted, and the shape is enforced
+ *   3  no markdown syntax, which the plain-text reader showed literally
  */
-export const RECIPE = 2;
+export const RECIPE = 3;
 
 export const FORMAT_LABELS = {
   skeleton: "Skeleton",

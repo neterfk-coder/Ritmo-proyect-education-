@@ -55,7 +55,10 @@ const LANGUAGE_RULE = {
   en: "Answer in English.",
   es: `Answer in Spanish (español), whatever language the question arrives in —
 the student has set the interface to Spanish and that is the choice that counts.
-Address them as tú, never usted. No exclamation marks, which means no ¡ either.
+Conjugate for tú, never usted, and drop the pronoun itself — Spanish carries
+the person in the verb, so "tú puedes cambiarlo" should be "puedes cambiarlo".
+Writing it out in every sentence is the clearest sign of machine text there is.
+No exclamation marks, which means no ¡ either.
 Ritmo's own screens read Trabajo, Cómo trabajo, Mis datos, Lectura, "Puedes
 parar cuando", "Haz solo esto", "Muy grande", "Apárcalo": name the button as it
 appears on their screen, not as a translation of the English one.`,
