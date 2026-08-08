@@ -299,6 +299,61 @@ line names the kind, the marker ends the header, and everything after it is the
 answer verbatim. No markdown headings, no bold, no code fences.`;
 }
 
+/**
+ * What to keep once the work is done.
+ *
+ * The steps get a student through tonight. This is the part that survives to
+ * the exam, and it is the half of "teaching" the product did not do: it broke
+ * a task down and never helped anybody retain what the task was about.
+ *
+ * The hard rule is that generic study advice is worthless here. "Use
+ * flashcards" and "review regularly" are true of everything and therefore
+ * about nothing — and a student who has just been given precise, specific help
+ * with their assignment will read filler as the tool giving up. Every line has
+ * to be about this content.
+ */
+export function studyPrompt(rawText) {
+  return `Here is an assignment a student has been working on.
+
+<assignment>
+${rawText}
+</assignment>
+
+Produce three things that would help them still know this in a month.
+
+Answer in exactly this shape, nothing else:
+
+SUMMARY
+one paragraph, four sentences at most, covering what this topic actually is —
+not what the assignment asks. Somebody reading only this should understand the
+subject well enough to follow a conversation about it.
+
+POINTS
+- between three and five lines
+- each one a specific fact, relationship or distinction from THIS material
+- the things that would cost marks to get wrong, not the things that are easy
+- no line may restate another
+
+REMEMBER
+one technique, applied to this content rather than described in the abstract.
+Build the actual thing: if it is an acronym, spell out the acronym; if it is
+grouping, name the groups and what goes in each; if it is a comparison table,
+give the rows. Two or three sentences.
+
+Rules, all of them mandatory:
+- Everything must come from this material. Do not invent facts to make a
+  neater summary, and do not pad a section to fill it.
+- No generic study advice. "Use flashcards", "review often", "make a mind map"
+  with nothing in it — all forbidden. If a technique is named, it arrives
+  already built out of this content.
+- If the assignment is too thin to support one of these sections honestly,
+  write the section as a single short line saying so rather than inventing
+  material. A short true answer is worth more than a full invented one.
+- Do not solve the assignment. This is for remembering the subject, not for
+  producing the thing being marked.
+- Plain text. No markdown syntax — it is displayed exactly as typed.`;
+}
+
 export function insightPrompt(summary) {
   return `Here is aggregate data from one student's sessions.
 

@@ -7,6 +7,7 @@ import { parse } from "../lib/validate.js";
 import { decompose } from "../ai/decompose.js";
 import { reformat, FORMATS, RECIPE } from "../ai/reformat.js";
 import { solve } from "../ai/solve.js";
+import { study } from "../ai/study.js";
 
 export const tasks = Router();
 
@@ -199,6 +200,57 @@ tasks.post(
     }
 
     res.json({ kind: result.kind, body: result.body, cached: false });
+  })
+);
+
+/**
+ * What to keep once the work is done.
+ *
+ * Same deliberate-open contract as the solution: nothing is generated until
+ * somebody asks, and it is kept afterwards so a second look is free. Separate
+ * from the solution because they answer different questions — one is "did I
+ * get it right", the other is "will I still know this in a month" — and a
+ * student wants them at different moments.
+ */
+tasks.post(
+  "/:id/study",
+  route(async (req, res) => {
+    const lang = langOf(req);
+    const task = await db.task.findUnique({
+      where: { id: req.params.id },
+      include: { decomposition: true, student: { include: { profile: true } } },
+    });
+    if (!task) throw new ApiError(404, "That task is not here.");
+    if (!task.decomposition) throw new ApiError(409, "That task has not been worked out yet.");
+
+    const held = task.decomposition;
+    if (held.study && held.studyLang === lang) {
+      return res.json({ ...json.read(held.study, {}), cached: true });
+    }
+
+    const profile = task.student.profile
+      ? { ...task.student.profile, directives: json.read(task.student.profile.directives) }
+      : { directives: [] };
+
+    let result;
+    try {
+      result = await study({ rawText: task.rawText, student: task.student, profile, lang });
+    } catch (err) {
+      // A refillable limit is passed through as itself. The steps are still on
+      // screen and still correct; this is a panel that did not open, not a
+      // broken page.
+      if (err.status === 429) throw err;
+      throw new ApiError(502, "That could not be worked out just now.", err.message);
+    }
+
+    if (!result.unavailable) {
+      await db.decomposition.update({
+        where: { id: held.id },
+        data: { study: json.write(result), studyLang: lang },
+      });
+    }
+
+    res.json({ ...result, cached: false });
   })
 );
 

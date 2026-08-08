@@ -141,6 +141,12 @@ model Decomposition {
   solutionKind String?
   solutionLang String?
 
+  // Key points, a short summary, and one way to remember it — generated only
+  // when asked for, like the solution and for the same reason. JSON, because
+  // SQLite has no array column and this is read whole or not at all.
+  study     String?
+  studyLang String?
+
   steps MicroStep[]
 }
 

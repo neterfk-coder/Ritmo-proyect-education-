@@ -476,6 +476,19 @@ const S = {
     en: "This assignment asks for your own work, so what follows is the same technique on a different example — not the thing you have to hand in.",
     es: "Esta tarea pide tu propio trabajo, así que lo de abajo es la misma técnica sobre otro ejemplo distinto, no lo que tienes que entregar.",
   },
+  /* what is left in a month, not what gets you through tonight */
+  "study.open": { en: "Help me remember this", es: "Ayúdame a recordar esto" },
+  "study.close": { en: "Put this away", es: "Guardar esto" },
+  "study.legend": { en: "For later", es: "Para después" },
+  "study.working": { en: "Picking out what matters", es: "Sacando lo que importa" },
+  "study.note": {
+    en: "The steps are for tonight. This is what is worth keeping once it is handed in.",
+    es: "Los pasos son para esta noche. Esto es lo que vale la pena guardar cuando ya la hayas entregado.",
+  },
+  "study.summary": { en: "In short", es: "En resumen" },
+  "study.points": { en: "The points that matter", es: "Los puntos que importan" },
+  "study.remember": { en: "One way to hold on to it", es: "Una forma de retenerlo" },
+
   "solution.busy": {
     en: "The model has run out of capacity for the moment — this copy shares a free allowance with everyone using it. It comes back on its own. The steps above are unaffected, and trying again in a few minutes usually works.",
     es: "El modelo se ha quedado sin capacidad por ahora: esta copia comparte un cupo gratuito con todo el que la usa. Se recupera solo. Los pasos de arriba no se ven afectados, y volver a intentarlo en unos minutos suele funcionar.",

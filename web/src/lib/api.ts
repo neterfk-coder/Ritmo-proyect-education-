@@ -83,6 +83,16 @@ export const api = {
       { method: "POST" }
     ),
 
+  /** Key points, a summary, and one way to remember it. Written on request. */
+  studyTask: (taskId: string) =>
+    call<{
+      summary?: string;
+      points?: string[];
+      remember?: string;
+      unavailable?: string;
+      cached: boolean;
+    }>(`/tasks/${taskId}/study`, { method: "POST" }),
+
   shrinkStep: (stepId: string) =>
     call<{ id: string; text: string }>(`/tasks/steps/${stepId}/shrink`, { method: "POST" }),
 
