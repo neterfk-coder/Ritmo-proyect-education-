@@ -5,6 +5,20 @@ import { env } from "../env.js";
 
 export const FORMATS = ["skeleton", "dialogue", "map", "comic", "audio"];
 
+/**
+ * The version of the reformatting rules.
+ *
+ * Renderings are cached per task, so a change to `reformatPrompt` only reached
+ * tasks created afterwards: a student who had already opened a shape kept the
+ * old output for ever. Raise this whenever the prompt changes in a way that
+ * should reach work already in progress, and the next request regenerates
+ * rather than serving what the previous rules produced.
+ *
+ *   1  original
+ *   2  short input is unpacked rather than permuted, and the shape is enforced
+ */
+export const RECIPE = 2;
+
 export const FORMAT_LABELS = {
   skeleton: "Skeleton",
   dialogue: "Dialogue",

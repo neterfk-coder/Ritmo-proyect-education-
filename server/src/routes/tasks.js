@@ -5,7 +5,7 @@ import { route, ApiError } from "../lib/http.js";
 import { langOf } from "../lib/lang.js";
 import { parse } from "../lib/validate.js";
 import { decompose } from "../ai/decompose.js";
-import { reformat, FORMATS } from "../ai/reformat.js";
+import { reformat, FORMATS, RECIPE } from "../ai/reformat.js";
 import { solve } from "../ai/solve.js";
 
 export const tasks = Router();
@@ -120,7 +120,7 @@ tasks.post(
     if (!task) throw new ApiError(404, "That task is not here.");
 
     const cached = await db.rendering.findUnique({
-      where: { taskId_format_lang: { taskId: task.id, format, lang } },
+      where: { taskId_format_lang_recipe: { taskId: task.id, format, lang, recipe: RECIPE } },
     });
     if (cached) return res.json({ ...cached, cached: true });
 
@@ -133,7 +133,7 @@ tasks.post(
     });
 
     const rendering = await db.rendering.create({
-      data: { taskId: task.id, format, lang, body, wordCount: body.split(/\s+/).length },
+      data: { taskId: task.id, format, lang, recipe: RECIPE, body, wordCount: body.split(/\s+/).length },
     });
     res.status(201).json({ ...rendering, cached: false });
   })

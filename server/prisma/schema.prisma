@@ -176,11 +176,22 @@ model Rendering {
   // away which steps they had finished — a task stays in the language it was
   // opened in.
   lang      String   @default("en")
+
+  // Which version of the reformat prompt wrote this.
+  //
+  // The cache had no way to know the instructions had changed, so a task
+  // opened before a prompt fix kept serving the old output for ever — a
+  // student who had already looked at a shape stayed with the bad one while a
+  // new task got the good one, and nothing on screen explained the difference.
+  // Bumping RECIPE in ai/reformat.js retires every rendering made under the
+  // previous rules, without a migration or a manual purge.
+  recipe    Int      @default(1)
+
   body      String   // markdown-ish text
   wordCount Int      @default(0)
   createdAt DateTime @default(now())
 
-  @@unique([taskId, format, lang])
+  @@unique([taskId, format, lang, recipe])
 }
 
 model Session {
