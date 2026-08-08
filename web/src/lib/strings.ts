@@ -245,6 +245,10 @@ const S = {
   "contract.reallyAsking": { en: "What it is really asking", es: "Qué te está pidiendo de verdad" },
   "contract.wordMeans": { en: "The word in the question means:", es: "La palabra del enunciado significa:" },
   "contract.mustExist": { en: "What has to exist", es: "Qué tiene que existir" },
+  "contract.fromTemplates": {
+    en: "This one was worked out by the offline engine rather than the model — either no key is set, or the shared free allowance is spent for now. The structure holds, but it was built from the shape of the assignment rather than from reading it. Opening the same task again later will use the model.",
+    es: "Esta la resolvió el motor sin conexión, no el modelo: o no hay clave configurada, o el cupo gratuito compartido está agotado por ahora. La estructura vale, pero se construyó a partir de la forma del enunciado y no de leerlo. Si vuelves a abrir la misma tarea más tarde, usará el modelo.",
+  },
   "contract.traps": {
     en: "Not written down anywhere, but expected",
     es: "No está escrito en ningún sitio, pero se espera",
@@ -471,6 +475,10 @@ const S = {
   "solution.methodNote": {
     en: "This assignment asks for your own work, so what follows is the same technique on a different example — not the thing you have to hand in.",
     es: "Esta tarea pide tu propio trabajo, así que lo de abajo es la misma técnica sobre otro ejemplo distinto, no lo que tienes que entregar.",
+  },
+  "solution.busy": {
+    en: "The model has run out of capacity for the moment — this copy shares a free allowance with everyone using it. It comes back on its own. The steps above are unaffected, and trying again in a few minutes usually works.",
+    es: "El modelo se ha quedado sin capacidad por ahora: esta copia comparte un cupo gratuito con todo el que la usa. Se recupera solo. Los pasos de arriba no se ven afectados, y volver a intentarlo en unos minutos suele funcionar.",
   },
   "solution.failed": {
     en: "The solution could not be worked out just now. The steps above are unaffected — try again in a moment.",

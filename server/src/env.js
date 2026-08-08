@@ -64,5 +64,21 @@ export const env = {
     (process.env.GROQ_API_KEY ? "groq" : process.env.ANTHROPIC_API_KEY ? "anthropic" : "offline"),
   groqKey: process.env.GROQ_API_KEY ?? "",
   groqModel: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+
+  /*
+    The guide runs on a smaller model than the decompiler.
+
+    Groq's free tier caps tokens per day per organisation, not per key, so a
+    second key on the same account buys nothing. What does buy something is
+    not spending the reasoning budget on work that needs no reasoning: the
+    companion answers short questions about this product, grounded in curated
+    text it is handed, so the large model was being paid to paraphrase an
+    answer it had already been given.
+
+    Decomposition and worked solutions keep the large model — those genuinely
+    reason about somebody's homework. Overridable if the split turns out wrong.
+  */
+  groqCompanionModel:
+    process.env.GROQ_COMPANION_MODEL ?? process.env.GROQ_MODEL ?? "llama-3.1-8b-instant",
   groqBaseUrl: process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1",
 };

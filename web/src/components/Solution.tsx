@@ -28,7 +28,7 @@ export function Solution({ taskId }: { taskId: string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ kind: string; body: string } | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<null | "busy" | "broken">(null);
 
   const toggle = async () => {
     if (open) return setOpen(false);
@@ -36,12 +36,16 @@ export function Solution({ taskId }: { taskId: string }) {
     if (result || busy) return;
 
     setBusy(true);
-    setFailed(false);
+    setFailed(null);
     try {
       const solved = await api.solveTask(taskId);
       setResult({ kind: solved.kind, body: solved.body });
-    } catch {
-      setFailed(true);
+    } catch (err) {
+      // A shared free tier runs out of tokens, and that is a queue rather than
+      // a defect. Told "this could not be worked out", a student reasonably
+      // stops asking; told it is busy, they come back.
+      const message = err instanceof Error ? err.message : "";
+      setFailed(/capacity|out of capacity|429/i.test(message) ? "busy" : "broken");
     } finally {
       setBusy(false);
     }
@@ -73,7 +77,11 @@ export function Solution({ taskId }: { taskId: string }) {
             </div>
           )}
 
-          {failed && <p className="text-sm text-muted reading">{t("solution.failed")}</p>}
+          {failed && (
+            <p className="text-sm text-muted reading">
+              {t(failed === "busy" ? "solution.busy" : "solution.failed")}
+            </p>
+          )}
 
           {result && (
             <>

@@ -180,6 +180,11 @@ tasks.post(
       // The steps are still on screen and still correct. Failing to produce a
       // solution is a disappointment, not a broken page, and it must not read
       // like one.
+      //
+      // A capacity limit is passed through as itself rather than flattened
+      // into a generic failure: it comes back on its own, and a student told
+      // "this could not be worked out" would reasonably stop asking.
+      if (err.status === 429) throw err;
       throw new ApiError(502, "The solution could not be worked out just now.", err.message);
     }
 

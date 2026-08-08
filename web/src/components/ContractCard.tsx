@@ -46,6 +46,22 @@ export function ContractCard({ d }: { d: Decomposition }) {
         </Block>
       </div>
 
+      {/*
+        Say when this one came from the templates.
+
+        Every AI path here falls back to the offline engine rather than
+        failing, which is right — a student at 9pm should never meet an error
+        screen. But the fallback was silent, so a shared free tier running out
+        of tokens produced generic steps that looked exactly like worked-out
+        ones, and the student had no way to tell they were reading a template
+        of their assignment rather than a reading of it.
+
+        Quiet, at the bottom, and only when it happened.
+      */}
+      {d.model === "mock" && (
+        <p className="text-xs text-faint reading max-w-reading">{t("contract.fromTemplates")}</p>
+      )}
+
       {d.trapWarnings.length > 0 && (
         <div className="panel p-6 sm:p-7">
           <span className="panel-legend">{t("contract.traps")}</span>

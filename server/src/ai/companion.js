@@ -188,7 +188,9 @@ async function callGroq(system, question) {
       authorization: `Bearer ${env.groqKey}`,
     },
     body: JSON.stringify({
-      model: env.groqModel,
+      // The smaller model: this is grounded paraphrasing, not reasoning.
+      // See env.js for why the two are split.
+      model: env.groqCompanionModel,
       max_tokens: 400,
       temperature: 0.3,
       messages: [

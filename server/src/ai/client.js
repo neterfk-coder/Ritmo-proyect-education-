@@ -76,6 +76,20 @@ export async function complete({ system, user, maxTokens = 1600 }) {
 
   if (!res.ok) {
     const body = await res.text();
+
+    /*
+      A quota that refills is not the same failure as a broken one, and the
+      difference is the only thing the student can act on. Both providers'
+      free tiers cap tokens per day, and on the hosted copy that cap is shared
+      by everyone using it — so "try again shortly" is true, useful, and
+      completely invisible unless this case is separated out here.
+
+      Without this it surfaced as "the solution could not be worked out", which
+      reads as a permanent defect in the feature rather than a queue.
+    */
+    if (res.status === 429 || /rate.?limit|quota|too many requests/i.test(body)) {
+      throw new ApiError(429, "The model is out of capacity for now.", body.slice(0, 400));
+    }
     throw new ApiError(502, "The model did not answer.", body.slice(0, 400));
   }
 
